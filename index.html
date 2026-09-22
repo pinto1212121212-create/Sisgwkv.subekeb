@@ -121,7 +121,147 @@
     border:1px solid var(--line);border-radius:9px;padding:11px 2px;font-size:14px;
     font-family:inherit;cursor:pointer;font-variant-numeric:tabular-nums}
   .guessSeg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-  @media (prefers-reduced-motion:reduce){*{transition:none !important}}
+  /* ---- table mode ---- */
+  .sceneWrap{container-type:inline-size;margin:0 0 14px}
+  .scene{--su:1px;--su:calc(100cqw / 360);position:relative;width:100%;aspect-ratio:360/440;
+    background:radial-gradient(120% 60% at 50% 0%,#1C2438 0%,#121826 55%,#0D121B 100%);
+    border-radius:18px;overflow:hidden;isolation:isolate;border:1px solid #242D40}
+  .scene .felt{position:absolute;inset:0;width:100%;height:100%;z-index:0;display:block}
+  .dealerFig{position:absolute;left:calc(var(--su)*120);top:0;width:calc(var(--su)*120);height:calc(var(--su)*78);z-index:1}
+  .dealerFig svg{width:100%;height:100%;display:block}
+  .bubble{position:absolute;left:calc(var(--su)*232);top:calc(var(--su)*12);max-width:calc(var(--su)*120);z-index:6;
+    background:#F3F0E7;color:#1B1E26;font-size:calc(var(--su)*11.5);line-height:1.35;border-radius:calc(var(--su)*10);
+    padding:calc(var(--su)*6) calc(var(--su)*9);box-shadow:0 calc(var(--su)*4) calc(var(--su)*12) rgba(0,0,0,.4)}
+  .bubble:empty{display:none}
+  .bubble::before{content:"";position:absolute;left:calc(var(--su)*-6);top:calc(var(--su)*11);
+    border-style:solid;border-color:transparent #F3F0E7 transparent transparent;
+    border-width:calc(var(--su)*6) calc(var(--su)*6) calc(var(--su)*6) 0}
+
+  .shoeBox{position:absolute;left:calc(var(--su)*292);top:calc(var(--su)*88);width:calc(var(--su)*50);height:calc(var(--su)*60);z-index:2}
+  .shoeBody{position:absolute;inset:0;border-radius:calc(var(--su)*5);
+    background:linear-gradient(160deg,#39414F 0%,#1B202B 60%,#12151C 100%);
+    box-shadow:0 calc(var(--su)*4) calc(var(--su)*10) rgba(0,0,0,.5),inset 0 0 0 calc(var(--su)*1) rgba(255,255,255,.07)}
+  .shoeWin{position:absolute;left:calc(var(--su)*8);right:calc(var(--su)*7);top:calc(var(--su)*7);bottom:calc(var(--su)*7);
+    border-radius:calc(var(--su)*3);background:rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:flex-end}
+  .shoeWin .fill{width:100%;transition:height .3s;
+    background:repeating-linear-gradient(to bottom,#22325A 0,#22325A calc(var(--su)*1.5),#B8934F calc(var(--su)*1.5),#B8934F calc(var(--su)*2))}
+  .shoeLip{position:absolute;left:calc(var(--su)*-9);bottom:calc(var(--su)*9);width:calc(var(--su)*18);height:calc(var(--su)*26);
+    border-radius:calc(var(--su)*2.5);transform:rotate(-10deg)}
+  .discBox{position:absolute;left:calc(var(--su)*18);top:calc(var(--su)*88);width:calc(var(--su)*50);height:calc(var(--su)*60);z-index:2;
+    border-radius:calc(var(--su)*5);border:calc(var(--su)*1) solid rgba(255,255,255,.28);
+    background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+    box-shadow:inset 0 0 calc(var(--su)*8) rgba(255,255,255,.06),0 calc(var(--su)*3) calc(var(--su)*8) rgba(0,0,0,.35);
+    display:flex;align-items:flex-end;justify-content:center;overflow:hidden;padding:calc(var(--su)*4)}
+  .discBox .fill{width:calc(var(--su)*34);transition:height .3s;border-radius:calc(var(--su)*1.5) calc(var(--su)*1.5) 0 0;
+    background:repeating-linear-gradient(to bottom,#F3F0E7 0,#F3F0E7 calc(var(--su)*1.3),#BDB5A2 calc(var(--su)*1.3),#BDB5A2 calc(var(--su)*1.9))}
+
+  .scene .spot{position:absolute;width:0;height:0;z-index:3}
+  .scene .spot .who{display:none}
+  .scene .hand{position:absolute;left:0;transform:translateX(-50%);display:flex;direction:ltr;align-items:flex-start}
+  .scene .dealer .hand{top:0}
+  .scene .seat .hand{bottom:calc(var(--su)*26)}
+  .scene .tot{position:absolute;left:0;transform:translateX(-50%);white-space:nowrap;
+    font-size:calc(var(--su)*11);font-weight:700;font-variant-numeric:tabular-nums;color:#F3F0E7;
+    background:rgba(6,22,17,.78);border:calc(var(--su)*1) solid rgba(217,178,106,.4);
+    border-radius:calc(var(--su)*9);padding:calc(var(--su)*1.5) calc(var(--su)*7);line-height:1.2}
+  .scene .tot:empty{display:none}
+  .scene .dealer .tot{top:calc(var(--su)*65)}
+  .scene .seat .tot{top:0;transform:translate(-50%,-50%)}
+  #tS0 .tot{left:calc(var(--su)*-45)}
+  #tS1 .tot{left:calc(var(--su)*45)}
+  #tS2 .tot{left:calc(var(--su)*45)}
+  .scene .tag{position:absolute;left:0;transform:translateX(-50%);white-space:nowrap;
+    font-size:calc(var(--su)*10.5);font-weight:600;line-height:1.25;
+    padding:calc(var(--su)*1.5) calc(var(--su)*7);border-radius:calc(var(--su)*9);color:#1A1207;background:var(--gold)}
+  .scene .tag:empty{display:none}
+  .scene .tag.win{background:#5BBF8F;color:#06231A}
+  .scene .tag.lose{background:#E06A62;color:#2A0907}
+  .scene .dealer .tag{top:calc(var(--su)*86)}
+  .scene .seat .tag{top:calc(var(--su)*27)}
+  .scene .circle{position:absolute;left:0;top:0;width:calc(var(--su)*44);height:calc(var(--su)*44);transform:translate(-50%,-50%);
+    border-radius:50%;border:calc(var(--su)*1.4) solid rgba(217,178,106,.55);transition:box-shadow .2s,border-color .2s}
+  .scene .spot.me .circle{border-color:rgba(240,205,134,.95)}
+  .scene .spot.active .circle{border-color:#F0CD86;
+    box-shadow:0 0 0 calc(var(--su)*2) rgba(240,205,134,.25),0 0 calc(var(--su)*16) rgba(240,205,134,.6)}
+  .scene .chips{position:absolute;left:0;top:0;width:calc(var(--su)*24);height:calc(var(--su)*24);transform:translate(-50%,-50%)}
+  .scene .chip{position:absolute;inset:0;filter:drop-shadow(0 calc(var(--su)*1) calc(var(--su)*1) rgba(0,0,0,.55))}
+  .scene .chip svg{width:100%;height:100%;display:block}
+
+  .scene .mc{position:relative;flex:0 0 auto;width:calc(var(--su)*42);height:calc(var(--su)*60);
+    margin-left:calc(var(--su)*-26);border-radius:calc(var(--su)*4.5);padding:0;display:block;
+    background:linear-gradient(160deg,#FFFDF7 0%,#F1EDE2 100%);
+    box-shadow:0 calc(var(--su)*2) calc(var(--su)*5) rgba(0,0,0,.45),inset 0 0 0 calc(var(--su)*.8) rgba(0,0,0,.08);
+    font-family:Georgia,"Times New Roman",serif}
+  .scene .mc:first-child{margin-left:0}
+  .scene .mc .r{position:absolute;left:calc(var(--su)*3.5);top:calc(var(--su)*2.5);font-size:calc(var(--su)*13.5);font-weight:700;line-height:1;letter-spacing:-.03em}
+  .scene .mc .s{position:absolute;left:calc(var(--su)*4);top:calc(var(--su)*16.5);font-size:calc(var(--su)*10.5);line-height:1}
+  .scene .mc .pip{position:absolute;right:calc(var(--su)*4.5);bottom:calc(var(--su)*3);font-size:calc(var(--su)*24);line-height:1}
+  .scene .mc .pip.face{font-size:calc(var(--su)*21);font-weight:700;font-style:italic}
+  .scene .mc.red{color:#B3252B} .scene .mc.black{color:#16181D}
+  .scene .mc.back,.cardBack{
+    background:
+      repeating-linear-gradient(45deg,rgba(217,178,106,.5) 0 calc(var(--su)*.8),transparent calc(var(--su)*.8) calc(var(--su)*5)),
+      repeating-linear-gradient(-45deg,rgba(217,178,106,.5) 0 calc(var(--su)*.8),transparent calc(var(--su)*.8) calc(var(--su)*5)),
+      linear-gradient(160deg,#24365F,#151F3D);
+    box-shadow:inset 0 0 0 calc(var(--su)*2.2) #F3F0E7,inset 0 0 0 calc(var(--su)*3) rgba(217,178,106,.65),
+      0 calc(var(--su)*2) calc(var(--su)*5) rgba(0,0,0,.45)}
+  .scene .mc.flip{animation:flipIn .28s ease-out}
+  @keyframes flipIn{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+
+  .seatFig{position:absolute;width:calc(var(--su)*72);transform:translate(-50%,-50%);z-index:2;
+    display:flex;flex-direction:column;align-items:center;gap:calc(var(--su)*3.5)}
+  .seatFig .av{width:calc(var(--su)*40);height:calc(var(--su)*40);border-radius:50%;overflow:hidden;transition:box-shadow .2s;
+    box-shadow:0 0 0 calc(var(--su)*1.5) rgba(255,255,255,.14),0 calc(var(--su)*3) calc(var(--su)*8) rgba(0,0,0,.5)}
+  .seatFig .av svg{width:100%;height:100%;display:block}
+  .seatFig.me .av{box-shadow:0 0 0 calc(var(--su)*2) #D9B26A,0 calc(var(--su)*3) calc(var(--su)*8) rgba(0,0,0,.5)}
+  .seatFig .nm{font-size:calc(var(--su)*10.5);line-height:1;color:#C4CEDF}
+  .seatFig.me .nm{color:#E8C98A;font-weight:600}
+
+  .betRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+  .betRow .lbl{font-size:14px;line-height:1.3}
+  .betRow .lbl small{display:block;color:var(--muted);font-size:12px}
+  .betChips{display:flex;gap:7px;direction:ltr}
+  .betChips button{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;padding:0;
+    font-family:inherit;font-weight:700;font-size:14px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);
+    background:radial-gradient(circle,#B8322F 0 50%,rgba(255,255,255,.55) 51% 55%,transparent 56%),
+      repeating-conic-gradient(#B8322F 0 22deg,#F3F0E7 22deg 30deg);
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.28),0 2px 6px rgba(0,0,0,.45);opacity:.5;transition:transform .12s,opacity .12s}
+  .betChips button[aria-pressed=true]{opacity:1;transform:translateY(-3px);
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.28),0 0 0 2px var(--gold),0 5px 10px rgba(0,0,0,.45)}
+  .betChips button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+  .hud{position:absolute;left:calc(var(--su)*12);top:calc(var(--su)*10);z-index:4;
+    display:flex;flex-direction:column;gap:calc(var(--su)*3);direction:rtl;
+    background:rgba(10,14,22,.55);border:calc(var(--su)*1) solid rgba(255,255,255,.08);
+    border-radius:calc(var(--su)*8);padding:calc(var(--su)*6) calc(var(--su)*9);min-width:calc(var(--su)*70)}
+  .hud > div{display:flex;justify-content:space-between;align-items:baseline;gap:calc(var(--su)*10)}
+  .hud .hk{font-size:calc(var(--su)*9.5);color:#8E9AB2}
+  .hud .hv,.hud .v{font-size:calc(var(--su)*12);font-weight:700;font-variant-numeric:tabular-nums;color:#E6EAF2}
+  .hud .v.plus{color:var(--plus)} .hud .v.minus{color:var(--minus)} .hud .v.zero{color:#E6EAF2}
+  .startFelt{position:absolute;left:50%;top:63%;transform:translate(-50%,-50%);z-index:7;
+    font-family:inherit;font-size:calc(var(--su)*15);font-weight:700;color:#1A1207;cursor:pointer;border:none;
+    background:linear-gradient(180deg,#E9C98B,#C9A15C);border-radius:999px;
+    padding:calc(var(--su)*11) calc(var(--su)*26);
+    box-shadow:0 calc(var(--su)*6) calc(var(--su)*18) rgba(0,0,0,.5),inset 0 calc(var(--su)*1) 0 rgba(255,255,255,.45)}
+  .startFelt:focus-visible{outline:2px solid #F3F0E7;outline-offset:3px}
+  .startFelt.hidden{display:none}
+  .actSlot{min-height:56px;margin:0 0 12px;display:flex;flex-direction:column;justify-content:center}
+  .waitMsg{text-align:center;color:var(--muted);font-size:14px}
+  .waitMsg:empty{display:none}
+  .tset summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:15px;font-weight:600}
+  .tset summary::-webkit-details-marker{display:none}
+  .tset summary::after{content:"";width:8px;height:8px;border-left:2px solid var(--muted);border-bottom:2px solid var(--muted);
+    transform:rotate(-45deg) translateY(-3px);transition:transform .15s;flex:0 0 auto}
+  .tset[open] summary::after{transform:rotate(135deg) translateY(-1px)}
+  .tset .sumHint{font-size:12.5px;font-weight:400;color:var(--muted);margin-inline-start:auto}
+  .tset summary:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-radius:6px}
+  .coach{font-size:14px;line-height:1.55}
+  .coach > div + div{margin-top:6px}
+  .coach b.plus{color:var(--plus)} .coach b.minus{color:var(--minus)} .coach b.zero{color:var(--muted)}
+  .coach .fbBad{color:var(--minus)} .coach .fbOk{color:var(--plus)}
+  .coach .pairNote{color:var(--muted);font-size:13px}
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
 </style>
 </head>
 <body>
@@ -129,13 +269,14 @@
 
 <header>
   <h1>מאמן ספירת קלפים</h1>
-  <p class="sub">שיטת Hi-Lo — שלושה תרגילים, מהאיטי למהיר</p>
+  <p class="sub">שיטת Hi-Lo — מקלף בודד ועד שולחן מלא</p>
 </header>
 
 <div class="tabs" id="tabs">
   <button data-mode="single" aria-pressed="true">קלף בודד</button>
   <button data-mode="pair" aria-pressed="false">זוגות</button>
   <button data-mode="decks" aria-pressed="false">הערכת חפיסות</button>
+  <button data-mode="table" aria-pressed="false">שולחן</button>
 </div>
 
 <!-- ===== מצבי ספירה ===== -->
@@ -279,6 +420,226 @@
 
 </div>
 
+<!-- ===== שולחן ===== -->
+<div id="tableMode" class="hidden">
+
+  <details class="panel tset" id="tSet">
+    <summary>הגדרות שולחן<span class="sumHint" id="tSetHint">מהירות 0.7 · שאלה כל 3 סיבובים</span></summary>
+    <div class="row" style="margin-top:14px">
+      <label for="tSpeed">מהירות</label>
+      <input type="range" id="tSpeed" min="200" max="2000" step="100" value="700">
+      <span class="val" id="tSpeedVal">0.7 שנ׳</span>
+    </div>
+    <div class="row">
+      <label>לשאול כל</label>
+      <div class="seg" id="tAskSeg">
+        <button data-ask="1" aria-pressed="false">סיבוב</button>
+        <button data-ask="3" aria-pressed="true">3 סיבובים</button>
+        <button data-ask="6" aria-pressed="false">6 סיבובים</button>
+        <button data-ask="r" aria-pressed="false">אקראי</button>
+        <button data-ask="0" aria-pressed="false">סוף נעל</button>
+      </div>
+    </div>
+    <div class="row">
+      <label class="switch">
+        <input type="checkbox" id="tPlay" checked>
+        <span class="track"><span class="knob"></span></span>
+        אני משחק — מקום אמצעי מול הדילר
+      </label>
+    </div>
+    <div class="row">
+      <label class="switch">
+        <input type="checkbox" id="tCoachT">
+        <span class="track"><span class="knob"></span></span>
+        מצב מאמן — ספירה והמלצה בכל החלטה
+      </label>
+    </div>
+    <div class="row">
+      <label class="switch">
+        <input type="checkbox" id="tLive">
+        <span class="track"><span class="knob"></span></span>
+        גלגלי עזר — הצג ספירה רצה
+      </label>
+    </div>
+  </details>
+
+  <div class="sceneWrap">
+    <div class="scene tableSurf" id="tScene">
+      <svg class="felt" viewBox="0 0 360 440" aria-hidden="true">
+  <defs>
+    <radialGradient id="fG" cx="50%" cy="22%" r="80%"><stop offset="0" stop-color="#17684F"/><stop offset=".55" stop-color="#0F4E3D"/><stop offset="1" stop-color="#093428"/></radialGradient>
+    <linearGradient id="rG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#55222A"/><stop offset="1" stop-color="#2A0E13"/></linearGradient>
+    <linearGradient id="topShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>
+    <filter id="fT" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .09 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+    <pattern id="edgeP" width="4" height="2" patternUnits="userSpaceOnUse"><rect width="4" height="1.3" fill="#fff" fill-opacity=".0"/><rect y="1.3" width="4" height=".7" fill="#000" fill-opacity=".35"/></pattern>
+    <path id="lg1" d="M 52 78 A 128 160 0 0 0 308 78"/>
+    <path id="lg2" d="M 74 78 A 106 130 0 0 0 286 78"/>
+  </defs>
+  <path d="M8 78 L352 78 A172 300 0 0 1 8 78 Z" fill="url(#fG)"/>
+  <path d="M8 78 L352 78 A172 300 0 0 1 8 78 Z" fill="#fff" filter="url(#fT)"/>
+  <rect x="8" y="78" width="344" height="26" fill="url(#topShade)"/>
+  <path d="M 34 78 A 146 214 0 0 0 326 78" fill="none" stroke="#D9B26A" stroke-opacity=".26" stroke-width="1"/>
+  <text font-family="Georgia,'Times New Roman',serif" font-size="11.5" letter-spacing="1.8" fill="#D9B26A" fill-opacity=".85"><textPath href="#lg1" startOffset="50%" text-anchor="middle">BLACKJACK PAYS 3 TO 2</textPath></text>
+  <text font-family="Georgia,'Times New Roman',serif" font-size="7.4" letter-spacing="1.1" fill="#D9B26A" fill-opacity=".62" font-style="italic"><textPath href="#lg2" startOffset="50%" text-anchor="middle">Dealer must stand on all 17s</textPath></text>
+  <g transform="translate(126 79)">
+    <rect width="108" height="15" rx="2.5" fill="#07090D"/>
+    <g>
+      <rect x="3"  y="2.5" width="11" height="10" fill="#E9E6DD"/><rect x="3"  y="2.5" width="11" height="10" fill="url(#edgeP)"/>
+      <rect x="16" y="2.5" width="11" height="10" fill="#B8322F"/><rect x="16" y="2.5" width="11" height="10" fill="url(#edgeP)"/>
+      <rect x="29" y="2.5" width="11" height="10" fill="#B8322F"/><rect x="29" y="2.5" width="11" height="10" fill="url(#edgeP)"/>
+      <rect x="42" y="2.5" width="11" height="10" fill="#2E7D4F"/><rect x="42" y="2.5" width="11" height="10" fill="url(#edgeP)"/>
+      <rect x="55" y="2.5" width="11" height="10" fill="#2E7D4F"/><rect x="55" y="2.5" width="11" height="10" fill="url(#edgeP)"/>
+      <rect x="68" y="2.5" width="11" height="10" fill="#1B1C22"/><rect x="68" y="2.5" width="11" height="10" fill="url(#edgeP)"/>
+      <rect x="81" y="2.5" width="11" height="10" fill="#6A3E9E"/><rect x="81" y="2.5" width="11" height="10" fill="url(#edgeP)"/>
+      <rect x="94" y="2.5" width="11" height="10" fill="#E9E6DD"/><rect x="94" y="2.5" width="11" height="10" fill="url(#edgeP)"/>
+    </g>
+  </g>
+  <line x1="8" y1="78.5" x2="352" y2="78.5" stroke="#052119" stroke-width="2"/>
+  <path d="M 352 78 A 172 300 0 0 1 8 78" fill="none" stroke="url(#rG)" stroke-width="24"/>
+  <path d="M 363 78 A 183 311 0 0 1 -3 78" fill="none" stroke="#6E2E37" stroke-opacity=".55" stroke-width="1.5"/>
+  <path d="M 340 78 A 160 288 0 0 1 20 78" fill="none" stroke="#C9A15C" stroke-width="1.3" stroke-opacity=".85"/>
+</svg>
+      <div class="dealerFig"><svg viewBox="0 0 120 78" aria-hidden="true">
+  <defs>
+    <linearGradient id="dVestG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#262B37"/><stop offset="1" stop-color="#12151C"/></linearGradient>
+    <radialGradient id="dSkinG" cx=".42" cy=".38" r=".75"><stop offset="0" stop-color="#EBC29C"/><stop offset="1" stop-color="#C58B61"/></radialGradient>
+  </defs>
+  <path d="M12 78 C14 61 28 52 45 50 L75 50 C92 52 106 61 108 78 Z" fill="url(#dVestG)"/>
+  <path d="M47.5 50 L60 73 L72.5 50 Z" fill="#F2EFE7"/>
+  <path d="M47.5 50 L58.5 71 M72.5 50 L61.5 71" stroke="#0B0D12" stroke-width="1.3" fill="none" opacity=".7"/>
+  <circle cx="60" cy="75.5" r="1.2" fill="#C9A15C"/>
+  <rect x="80" y="60" width="13" height="4.2" rx="1" fill="#C9A15C"/>
+  <path d="M53 39 L53 50 Q60 55.5 67 50 L67 39 Z" fill="#BF855C"/>
+  <path d="M51.5 48.6 L59 52 L51.5 55.4 Z M68.5 48.6 L61 52 L68.5 55.4 Z" fill="#9E2330"/>
+  <rect x="58" y="50.4" width="4" height="3.2" rx="1.1" fill="#7C1A25"/>
+  <ellipse cx="46" cy="29" rx="2.5" ry="3.8" fill="#C58B61"/>
+  <ellipse cx="74" cy="29" rx="2.5" ry="3.8" fill="#C58B61"/>
+  <ellipse cx="60" cy="28" rx="14" ry="16.2" fill="url(#dSkinG)"/>
+  <path d="M45.2 26 C44 13.5 52 7.5 61 7.5 C70 7.5 77.2 13.5 75 25.5 C72.8 18.8 67.5 15.6 60 15.6 C53.6 15.6 48.6 19 45.2 26 Z" fill="#2B201B"/>
+  <path d="M52 23.6 Q55 22 58 23.6 M62 23.6 Q65 22 68 23.6" stroke="#2B201B" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  <ellipse cx="55" cy="28.2" rx="1.45" ry="1.75" fill="#1E1A18"/>
+  <ellipse cx="65" cy="28.2" rx="1.45" ry="1.75" fill="#1E1A18"/>
+  <path d="M60 29.5 Q61.6 33.2 59.4 34.2" stroke="#A36B48" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M55.4 37.2 Q60 40.4 64.6 37.2" stroke="#86463A" stroke-width="1.35" fill="none" stroke-linecap="round"/>
+</svg></div>
+      <div class="bubble" id="tMsg">ערב טוב. שב, ונתחיל כשתהיה מוכן.</div>
+      <div class="hud" aria-live="polite">
+        <div><span class="hk">סיבוב</span><span class="hv" id="tRound">0</span></div>
+        <div><span class="hk">נעל</span><span class="hv" id="tShoeNo">1</span></div>
+        <div id="tCountRow" style="display:none"><span class="hk">ספירה</span><span class="v zero" id="tCountV">—</span></div>
+      </div>
+      <button class="startFelt" id="tStart">התחל לשחק</button>
+
+      <div class="discBox" title="קלפים שהושלכו"><div class="fill" id="tDiscFill" style="height:0%"></div></div>
+      <div class="shoeBox" id="tShoeBox" title="הנעל">
+        <div class="shoeBody"></div>
+        <div class="shoeWin"><div class="fill" id="tShoeFill" style="height:100%"></div></div>
+        <div class="shoeLip cardBack"></div>
+      </div>
+
+      <div class="spot dealer" id="tDealer" style="left:50%;top:22.73%">
+        <div class="who">דילר</div><div class="hand"></div><div class="tot"></div><div class="tag"></div>
+      </div>
+      <div class="spot seat" id="tS0" style="left:80.56%;top:61.36%">
+        <div class="who">רון</div><div class="circle"></div><div class="chips"></div><div class="hand"></div><div class="tot"></div><div class="tag"></div>
+      </div>
+      <div class="spot seat me" id="tS1" style="left:50%;top:76.14%">
+        <div class="who">אתה</div><div class="circle"></div><div class="chips"></div><div class="hand"></div><div class="tot"></div><div class="tag"></div>
+      </div>
+      <div class="spot seat" id="tS2" style="left:19.44%;top:61.36%">
+        <div class="who">מאיה</div><div class="circle"></div><div class="chips"></div><div class="hand"></div><div class="tot"></div><div class="tag"></div>
+      </div>
+
+      <div class="seatFig" id="tFig0" style="left:80.56%;top:78.41%"><div class="av"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><clipPath id="cRon"><circle cx="24" cy="24" r="24"/></clipPath></defs>
+<g clip-path="url(#cRon)"><rect width="48" height="48" fill="#2B3B5A"/>
+<path d="M3 48 C5 38.5 13.5 34 24 34 C34.5 34 43 38.5 45 48 Z" fill="#1B2842"/>
+<path d="M19 34 L24 42.5 L29 34 Z" fill="#E8E4DA"/>
+<rect x="20.5" y="27.5" width="7" height="7.5" fill="#B7825E"/>
+<ellipse cx="24" cy="21" rx="9" ry="10.5" fill="#D6A57F"/>
+<path d="M16.2 25 C17 30.5 20 33 24 33 C28 33 31 30.5 31.8 25 C30.2 28.6 27.4 30 24 30 C20.6 30 17.8 28.6 16.2 25 Z" fill="#4E3222" fill-opacity=".5"/>
+<path d="M14.8 20.5 C13.8 12 18.8 8.6 24 8.6 C30 8.6 34.4 12 33.2 20.5 C31.2 15 28 13.8 24 13.8 C20 13.8 16.8 15 14.8 20.5 Z" fill="#5A3A24"/>
+<circle cx="20.6" cy="21.2" r="1.05" fill="#1D1A18"/><circle cx="27.4" cy="21.2" r="1.05" fill="#1D1A18"/>
+<path d="M21.6 26.6 Q24 28.1 26.4 26.6" stroke="#6E3A2C" stroke-width=".95" fill="none" stroke-linecap="round"/></g></svg></div><div class="nm">רון</div></div>
+      <div class="seatFig me" id="tFig1" style="left:50%;top:91.6%"><div class="av" id="tAv1"></div><div class="nm" id="tNm1">אתה</div></div>
+      <div class="seatFig" id="tFig2" style="left:19.44%;top:78.41%"><div class="av"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><clipPath id="cMaya"><circle cx="24" cy="24" r="24"/></clipPath></defs>
+<g clip-path="url(#cMaya)"><rect width="48" height="48" fill="#2C4A45"/>
+<path d="M12.6 22 C11.6 10 18 6.8 24 6.8 C31 6.8 36.4 10.8 35.4 22 L36.6 39 C32 41 16 41 11.4 39 Z" fill="#241816"/>
+<path d="M4 48 C6 39.2 13.6 35 24 35 C34.4 35 42 39.2 44 48 Z" fill="#1F6F5C"/>
+<rect x="21" y="28" width="6" height="8" fill="#C08A67"/>
+<ellipse cx="24" cy="21" rx="8.6" ry="10.2" fill="#DDAE8B"/>
+<path d="M15.4 20.2 C15.8 12 20 9.8 24.6 9.8 C29.2 9.8 32.7 12.8 32.6 19.2 C29 15.2 25 14.6 21 16 C18.8 16.9 16.9 18.4 15.4 20.2 Z" fill="#241816"/>
+<circle cx="15.6" cy="26.2" r="1.05" fill="#D9B26A"/><circle cx="32.4" cy="26.2" r="1.05" fill="#D9B26A"/>
+<circle cx="20.7" cy="21.6" r="1.05" fill="#1D1A18"/><circle cx="27.3" cy="21.6" r="1.05" fill="#1D1A18"/>
+<path d="M22 26.7 Q24 28.1 26 26.7" stroke="#A4474A" stroke-width="1.05" fill="none" stroke-linecap="round"/></g></svg></div><div class="nm">מאיה</div></div>
+    </div>
+  </div>
+
+  <div class="actSlot">
+    <div class="actions hidden" id="tActs">
+      <button class="big primary" id="aHit">למשוך</button>
+      <button class="big ghost" id="aStand">לעמוד</button>
+      <button class="big ghost" id="aDbl">להכפיל</button>
+    </div>
+    <div class="waitMsg" id="tWait"></div>
+  </div>
+
+  <div class="panel answer hidden" id="tAnswer">
+    <h2 id="tAskTitle">מה הספירה הרצה?</h2>
+    <input type="text" id="tGuess" inputmode="decimal" autocomplete="off" placeholder="0">
+    <p class="note" id="tPreview" style="margin:-4px 0 10px;text-align:center">נקודה בהתחלה = מינוס</p>
+    <div class="actions">
+      <button class="big primary" id="tCheck">בדוק</button>
+      <button class="big ghost" id="tSkip">דלג</button>
+    </div>
+  </div>
+
+  <div id="tResult" class="hidden"></div>
+  <div class="actions hidden" id="tContRow" style="margin-bottom:14px">
+    <button class="big primary" id="tCont">המשך לשחק</button>
+  </div>
+
+  <div class="betRow" id="tBetRow">
+    <div class="lbl">ההימור שלך<small>ביחידות</small></div>
+    <div class="betChips" id="tBetSeg">
+      <button data-bet="1" aria-pressed="true" aria-label="יחידה אחת">1</button>
+      <button data-bet="2" aria-pressed="false" aria-label="2 יחידות">2</button>
+      <button data-bet="4" aria-pressed="false" aria-label="4 יחידות">4</button>
+      <button data-bet="6" aria-pressed="false" aria-label="6 יחידות">6</button>
+      <button data-bet="8" aria-pressed="false" aria-label="8 יחידות">8</button>
+    </div>
+  </div>
+
+
+  <div class="panel coach hidden" id="tCoach">
+    <div id="tCoachTemp"></div>
+    <div id="tCoachRec"></div>
+    <div id="tCoachFb"></div>
+  </div>
+
+  <div class="actions" style="margin-bottom:14px">
+    <button class="big ghost hidden" id="tPauseBtn">השהה</button>
+    <button class="big ghost hidden" id="tRestart">התחל מחדש</button>
+  </div>
+
+  <div class="panel">
+    <h2>השולחן הזה</h2>
+    <table class="ref">
+      <tr><td>בדיקות ספירה</td><td id="tsTotal">0</td></tr>
+      <tr><td>מדויקות</td><td id="tsHits">0</td></tr>
+      <tr><td>רצף נוכחי</td><td id="tsStreak">0</td></tr>
+      <tr><td>החלטות נכונות</td><td id="tsDec">—</td></tr>
+      <tr><td>הימורים לפי הספירה</td><td id="tsBet">—</td></tr>
+      <tr><td>מאזן (יחידות)</td><td id="tsUnits">0</td></tr>
+    </table>
+    <p class="note">כל החלטה וכל הימור שלך נבדקים מול המהלך הנכון — אסטרטגיה בסיסית, ובמצבים המתאימים סטייה לפי הספירה האמיתית. זה נספר גם כשמצב המאמן כבוי.</p>
+    <p class="note">כללים: 6 חפיסות, חיתוך ב-75%, הדילר עומד על 17 רך, בלאק ג׳ק משלם 3:2. אין פיצול. הקלף הסמוי של הדילר נספר רק כשהוא נחשף.</p>
+  </div>
+</div>
+
 <!-- ===== משותף ===== -->
 <div class="panel" id="statsPanel">
   <h2>הסבב הזה</h2>
@@ -336,14 +697,16 @@
       b.setAttribute('aria-pressed','true');
       mode=b.dataset.mode;
       perFlash = (mode==='pair')?2:1;
-      var counting = (mode!=='decks');
+      var counting = (mode==='single'||mode==='pair');
       el('countMode').classList.toggle('hidden',!counting);
-      el('deckMode').classList.toggle('hidden',counting);
+      el('deckMode').classList.toggle('hidden',mode!=='decks');
+      el('tableMode').classList.toggle('hidden',mode!=='table');
       el('statsPanel').classList.toggle('hidden',!counting);
       el('pairHelp').style.display = (mode==='pair')?'block':'none';
       el('felt').classList.toggle('pair',mode==='pair');
       resetFelt('מוכן');
-      if(!counting) newDeckRound();
+      if(mode==='decks') newDeckRound();
+      if(mode!=='table') tHalt();
     });
   });
 
@@ -621,6 +984,578 @@
     el('dAvg').textContent=(dstats.err/dstats.total).toFixed(2);
     setTimeout(newDeckRound,1600);
   }
+
+  /* ---------- שולחן ---------- */
+  var ME=1;
+  var T={shoe:[],pos:0,cut:0,count:0,round:0,since:0,nextAsk:4,shoeNo:1,shown:0,disc:0,
+         speed:700,ask:3,live:false,play:true,coach:false,bet:1,betting:false,
+         queue:[],qi:0,to:null,shufT:null,
+         running:false,paused:false,waiting:false,awaitUser:false,shoeEnd:false,
+         hands:null,R:null};
+  var tst={total:0,hits:0,streak:0,dec:0,decOk:0,units:0,bets:0,betOk:0};
+  var CHIP='<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9.6" fill="#B8322F"/>'+
+    '<circle cx="10" cy="10" r="8.1" fill="none" stroke="#F3F0E7" stroke-width="2.6" stroke-dasharray="2.6 3.76"/>'+
+    '<circle cx="10" cy="10" r="5.6" fill="#A82C2A" stroke="rgba(255,255,255,.55)" stroke-width=".8"/></svg>';
+  var AV_YOU='<svg viewBox="0 0 48 48" aria-hidden="true"><defs><clipPath id="cYou"><circle cx="24" cy="24" r="24"/></clipPath></defs>'+
+    '<g clip-path="url(#cYou)"><rect width="48" height="48" fill="#1E2A44"/>'+
+    '<path d="M5 48 C7 38.5 14.5 34.5 24 34.5 C33.5 34.5 41 38.5 43 48 Z" fill="#8A97B4"/>'+
+    '<circle cx="24" cy="21" r="9" fill="#8A97B4"/></g></svg>';
+  var AV_GUEST='<svg viewBox="0 0 48 48" aria-hidden="true"><defs><clipPath id="cGuest"><circle cx="24" cy="24" r="24"/></clipPath></defs>'+
+    '<g clip-path="url(#cGuest)"><rect width="48" height="48" fill="#3A3552"/>'+
+    '<path d="M3 48 C5 38.5 13.5 34 24 34 C34.5 34 43 38.5 45 48 Z" fill="#5A4636"/>'+
+    '<path d="M19.5 34 L24 41 L28.5 34 Z" fill="#CFE0EE"/>'+
+    '<rect x="20.5" y="27.5" width="7" height="7.5" fill="#C99A76"/>'+
+    '<ellipse cx="24" cy="21" rx="9" ry="10.5" fill="#E2B792"/>'+
+    '<path d="M15 22 C14.6 17 15.6 14.5 17 13.6 C16.8 17 17 19.5 17.4 22 Z M33 22 C33.4 17 32.4 14.5 31 13.6 C31.2 17 31 19.5 30.6 22 Z" fill="#BDB9B2"/>'+
+    '<circle cx="20.4" cy="21.4" r="2.9" fill="none" stroke="#1E1E22" stroke-width="1"/>'+
+    '<circle cx="27.6" cy="21.4" r="2.9" fill="none" stroke="#1E1E22" stroke-width="1"/>'+
+    '<path d="M23.3 21.2 L24.7 21.2" stroke="#1E1E22" stroke-width="1"/>'+
+    '<circle cx="20.4" cy="21.5" r=".95" fill="#1D1A18"/><circle cx="27.6" cy="21.5" r=".95" fill="#1D1A18"/>'+
+    '<path d="M21.4 26.9 Q24 28.3 26.6 26.9" stroke="#7A4434" stroke-width=".95" fill="none" stroke-linecap="round"/></g></svg>';
+  var REDUCED=!!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  function cval(r){ if(r==='A') return 11; if(r==='K'||r==='Q'||r==='J'||r==='10') return 10; return parseInt(r,10); }
+  function htot(cards){
+    var t=0,a=0,i;
+    for(i=0;i<cards.length;i++){ t+=cval(cards[i].r); if(cards[i].r==='A') a++; }
+    while(t>21&&a>0){ t-=10; a--; }
+    return {t:t,soft:a>0};
+  }
+  /* בוטים: אסטרטגיה בסיסית מקוצרת */
+  function aiMove(cards,up){
+    var h=htot(cards),t=h.t,u=cval(up.r);
+    if(cards.length===2&&t===21) return 'S';
+    if(h.soft){ if(t>=19) return 'S'; if(t===18) return (u>=9)?'H':'S'; return 'H'; }
+    if(cards.length===2&&t===11) return 'D';
+    if(cards.length===2&&t===10&&u<=9) return 'D';
+    if(t<=11) return 'H';
+    if(t===12) return (u>=4&&u<=6)?'S':'H';
+    if(t<=16) return (u<=6)?'S':'H';
+    return 'S';
+  }
+  /* אסטרטגיה בסיסית מלאה (6 חפיסות, S17, בלי פיצול) — למאמן */
+  function tBasic(h,up){
+    var ht=htot(h),t=ht.t,u=cval(up.r),canD=(h.length===2);
+    if(ht.soft && t<21){
+      if(t>=19) return 'S';
+      if(t===18){ if(u>=3&&u<=6) return canD?'D':'S'; if(u===2||u===7||u===8) return 'S'; return 'H'; }
+      if(t===17) return (u>=3&&u<=6&&canD)?'D':'H';
+      if(t===15||t===16) return (u>=4&&u<=6&&canD)?'D':'H';
+      if(t===13||t===14) return (u>=5&&u<=6&&canD)?'D':'H';
+      return 'H';
+    }
+    if(t>=17) return 'S';
+    if(t>=13) return (u<=6)?'S':'H';
+    if(t===12) return (u>=4&&u<=6)?'S':'H';
+    if(t===11) return (u<=10&&canD)?'D':'H';
+    if(t===10) return (u<=9&&canD)?'D':'H';
+    if(t===9)  return (u>=3&&u<=6&&canD)?'D':'H';
+    return 'H';
+  }
+  /* סטיות Hi-Lo (מתוך ה-Illustrious 18, ידיים קשות) */
+  var DEV=[
+    {t:16,u:10,i:0.0001,show:'0',hi:'S',lo:'H'},
+    {t:15,u:10,i:4, show:'+4',hi:'S',lo:'H'},
+    {t:16,u:9, i:5, show:'+5',hi:'S',lo:'H'},
+    {t:13,u:2, i:-1,show:'−1',hi:'S',lo:'H'},
+    {t:13,u:3, i:-2,show:'−2',hi:'S',lo:'H'},
+    {t:12,u:2, i:3, show:'+3',hi:'S',lo:'H'},
+    {t:12,u:3, i:2, show:'+2',hi:'S',lo:'H'},
+    {t:12,u:4, i:0, show:'0', hi:'S',lo:'H'},
+    {t:12,u:5, i:-2,show:'−2',hi:'S',lo:'H'},
+    {t:12,u:6, i:-1,show:'−1',hi:'S',lo:'H'},
+    {t:11,u:11,i:1, show:'+1',hi:'D',lo:'H',dbl:true},
+    {t:10,u:10,i:4, show:'+4',hi:'D',lo:'H',dbl:true},
+    {t:10,u:11,i:4, show:'+4',hi:'D',lo:'H',dbl:true},
+    {t:9, u:2, i:1, show:'+1',hi:'D',lo:'H',dbl:true},
+    {t:9, u:7, i:3, show:'+3',hi:'D',lo:'H',dbl:true}
+  ];
+  function actName(a){ return a==='H'?'למשוך':(a==='S'?'לעמוד':'להכפיל'); }
+  function upName(c){ return c.r==='A'?'אס':(cval(c.r)===10?'10':c.r); }
+
+  function tUnseen(){
+    var hidden=0;
+    if(T.hands) T.hands.d.forEach(function(x){ if(x.down) hidden++; });
+    return (T.shoe.length-T.shown)+hidden;
+  }
+  function tTC(){
+    var dl=Math.max(0.5,Math.round(tUnseen()/52*2)/2);
+    return {tc:T.count/dl, dl:dl};
+  }
+  function tTemp(tc){
+    if(tc<=-1) return {txt:'קרה',cls:'minus'};
+    if(tc<1)   return {txt:'ניטרלית',cls:'zero'};
+    if(tc<3)   return {txt:'פושרת',cls:'zero'};
+    if(tc<5)   return {txt:'חמה',cls:'plus'};
+    return {txt:'חמה מאוד',cls:'plus'};
+  }
+  function tBetUnits(tc){ if(tc<2) return 1; if(tc<3) return 2; if(tc<4) return 4; if(tc<5) return 6; return 8; }
+  function signed1(x){ return (x>0?'+':(x<0?'−':''))+Math.abs(x).toFixed(1); }
+  function fmtU(u){ return (u>0?'+':(u<0?'−':''))+Math.abs(u); }
+
+  function tRecommend(){
+    var R=T.R,h=R.P[ME],up=R.D[0],ht=htot(h),u=cval(up.r);
+    var base=tBasic(h,up),act=base,why='אסטרטגיה בסיסית',dev=false,tc=tTC().tc,k,d;
+    if(!ht.soft){
+      for(k=0;k<DEV.length;k++){
+        d=DEV[k];
+        if(d.t===ht.t && d.u===u){
+          if(d.dbl && h.length!==2) break;
+          var a=(tc>=d.i)?d.hi:d.lo;
+          if(a!==base){ act=a; dev=true; why='סטייה לפי הספירה — '+ht.t+' מול '+upName(up)+', הסף הוא '+d.show; }
+          break;
+        }
+      }
+    }
+    return {act:act,why:why,dev:dev};
+  }
+
+  function tNewShoe(){
+    T.shoe=buildShoe(6); T.pos=0; T.cut=Math.floor(T.shoe.length*0.75);
+    T.count=0; T.disc=0; T.shown=0; T.shoeEnd=false; tStacks();
+  }
+  function tDraw(){ return T.shoe[T.pos++]; }
+
+  function tSpot(k){ return el(k==='d'?'tDealer':'tS'+k); }
+  function tResetHands(){
+    T.hands={d:[],0:[],1:[],2:[]};
+    ['d',0,1,2].forEach(function(k){
+      var s=tSpot(k);
+      s.querySelector('.hand').innerHTML='';
+      s.querySelector('.tot').textContent='';
+      var tg=s.querySelector('.tag'); tg.textContent=''; tg.className='tag';
+      var ch=s.querySelector('.chips'); if(ch) ch.innerHTML='';
+      s.classList.remove('active');
+    });
+  }
+  function mcHTML(c,down){
+    if(down) return '<div class="mc back"></div>';
+    var face=(c.r==='J'||c.r==='Q'||c.r==='K');
+    return '<div class="mc '+c.c+'"><span class="r">'+c.r+'</span><span class="s">'+c.s+'</span>'+
+      '<span class="pip'+(face?' face':'')+'">'+(face?c.r:c.s)+'</span></div>';
+  }
+  function tAnimate(node,mode){
+    if(!node||REDUCED) return;
+    if(mode==='flip'){ node.classList.add('flip'); return; }
+    var sb=el('tShoeBox');
+    if(!sb||!node.getBoundingClientRect) return;
+    var a=sb.getBoundingClientRect(),b=node.getBoundingClientRect();
+    if(!b.width||!a.width) return;
+    var dx=(a.left+a.width*0.25)-(b.left+b.width/2), dy=(a.top+a.height*0.55)-(b.top+b.height/2);
+    node.style.transition='none';
+    node.style.transform='translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px) rotate(-28deg) scale(.55)';
+    node.style.opacity='0';
+    void node.offsetWidth;
+    var dur=Math.max(170,Math.min(360,Math.round(T.speed*0.55)));
+    node.style.transition='transform '+dur+'ms cubic-bezier(.18,.72,.2,1), opacity '+Math.round(dur*0.45)+'ms linear';
+    node.style.transform=''; node.style.opacity='';
+  }
+  function tChips(i,n){
+    var box=tSpot(i).querySelector('.chips'); if(!box) return;
+    var h='',k; n=Math.max(0,Math.min(n||0,16));
+    for(k=0;k<n;k++) h+='<span class="chip" style="transform:translateY(calc(var(--su) * '+(-k*2.4).toFixed(1)+'))">'+CHIP+'</span>';
+    box.innerHTML=h;
+  }
+  function tRenderHand(k,newIdx,mode){
+    var arr=T.hands[k],html='',vis=[],i;
+    for(i=0;i<arr.length;i++){
+      html+=mcHTML(arr[i].c,arr[i].down);
+      if(!arr[i].down) vis.push(arr[i].c);
+    }
+    var s=tSpot(k);
+    s.querySelector('.hand').innerHTML=html;
+    if(newIdx!=null && newIdx>=0) tAnimate(s.querySelector('.hand').children[newIdx],mode);
+    if(vis.length){
+      var h=htot(vis);
+      s.querySelector('.tot').textContent=(h.soft&&h.t<21)?((h.t-10)+'/'+h.t):String(h.t);
+    } else s.querySelector('.tot').textContent='';
+  }
+  function tStacks(){
+    var total=T.shoe.length||312;
+    el('tShoeFill').style.height=Math.round((total-T.shown)/total*100)+'%';
+    el('tDiscFill').style.height=Math.round(T.disc/total*100)+'%';
+  }
+  function tPaintCount(){
+    var v=el('tCountV');
+    el('tCountRow').style.display=T.live?'':'none';
+    if(!T.live){ v.textContent='—'; v.className='v zero'; return; }
+    v.textContent=(T.count>0?'+':'')+T.count;
+    v.className='v '+(T.count>0?'plus':T.count<0?'minus':'zero');
+  }
+  function tAdd(c){ T.count+=hiLo(c.r); tPaintCount(); }
+  function tPaintStats(){
+    el('tsTotal').textContent=tst.total;
+    el('tsHits').textContent=tst.hits;
+    el('tsStreak').textContent=tst.streak;
+    el('tsDec').textContent=tst.dec?(tst.decOk+' / '+tst.dec):'—';
+    el('tsUnits').textContent=fmtU(tst.units);
+    el('tsBet').textContent=tst.bets?(tst.betOk+' / '+tst.bets):'—';
+  }
+
+  /* ---- מאמן ---- */
+  function tCoachShow(on){ el('tCoach').classList.toggle('hidden',!on); }
+  function tCoachNext(){
+    var r=tTC(),tp=tTemp(r.tc),u=tBetUnits(r.tc);
+    el('tCoachTemp').innerHTML='לפני החלוקה: ספירה רצה '+fmt(T.count)+', נשארו כ-'+r.dl+' חפיסות, אמיתית '+signed1(r.tc)+'. הנעל <b class="'+tp.cls+'">'+tp.txt+'</b>.';
+    el('tCoachRec').innerHTML= u===1
+      ? 'הימור מומלץ: <b>1</b> — אין כרגע יתרון לשחקן, נשארים במינימום'
+      : 'הימור מומלץ: <b>'+u+'</b> — היתרון עבר אליך, זה הרגע להעלות';
+    el('tCoachFb').innerHTML='';
+  }
+  function tCoachBetGrade(mine,u){
+    el('tCoachFb').innerHTML=(mine===u)
+      ? '<span class="fbOk">הימרת '+mine+' — מתאים לספירה.</span>'
+      : '<span class="fbBad">הימרת '+mine+'. לפי הספירה מתאים '+u+'.</span>';
+  }
+  function tCoachTurn(){
+    var r=tTC(),tp=tTemp(r.tc),rec=tRecommend(),h=T.R.P[ME];
+    el('tCoachTemp').innerHTML='ספירה רצה '+fmt(T.count)+', נשארו כ-'+r.dl+' חפיסות, אמיתית '+signed1(r.tc)+'. הנעל <b class="'+tp.cls+'">'+tp.txt+'</b>.';
+    var html='המלצה: <b>'+actName(rec.act)+'</b> — '+rec.why;
+    if(h.length===2 && h[0].r===h[1].r && (h[0].r==='A'||h[0].r==='8'))
+      html+='<div class="pairNote">בשולחן אמיתי מפצלים זוג '+(h[0].r==='A'?'אסים':'שמיניות')+' תמיד. המאמן לא תומך בפיצול, אז ההמלצה כאן היא לפי הסכום.</div>';
+    el('tCoachRec').innerHTML=html;
+  }
+
+  /* ---- מנוע הסיבוב: שלבים ---- */
+  function rnd4(){ return 1+Math.floor(Math.random()*4); }
+  function tBegin(){
+    T.R={P:[[],[],[]],D:[],phase:0,dbl:[false,false,false],dbj:false,you:T.play,
+         bet:T.bet,chips:[rnd4(),T.play?T.bet:rnd4(),rnd4()]};
+    tResetHands();
+    var me=el('tS1');
+    me.classList.toggle('me',T.R.you);
+    me.querySelector('.who').textContent=T.R.you?'אתה':'אבי';
+    el('tFig1').classList.toggle('me',T.R.you);
+    el('tNm1').textContent=T.R.you?'אתה':'אבי';
+    el('tAv1').innerHTML=T.R.you?AV_YOU:AV_GUEST;
+    for(var q=0;q<3;q++) tChips(q,T.R.chips[q]);
+    tCoachShow(T.coach && T.R.you);
+    if(T.R.you){
+      T.betting=true;
+      if(T.coach) tCoachNext();
+      el('tMsg').textContent='הימורים, בבקשה';
+      tWait('אפשר לשנות הימור עד החלוקה');
+      T.to=setTimeout(tDeal,Math.max(900,Math.round(T.speed*1.8)));
+    } else tDeal();
+  }
+  function tDeal(){
+    T.to=null;
+    if(!T.running) return;
+    el('tRound').textContent=T.round+1;
+    T.betting=false;
+    el('tMsg').textContent='';
+    tWait('הדילר מחלק');
+    var ev=[],R=T.R,i,c;
+    if(R.you){
+      R.bet=T.bet; R.chips[ME]=T.bet; tChips(ME,T.bet);
+      var bu=tBetUnits(tTC().tc);
+      tst.bets++; if(R.bet===bu) tst.betOk++;
+      tPaintStats();
+      if(T.coach){ tCoachNext(); tCoachBetGrade(R.bet,bu); }
+    }
+    for(i=0;i<3;i++){ c=tDraw(); R.P[i].push(c); ev.push({t:'deal',to:i,c:c}); }
+    c=tDraw(); R.D.push(c); ev.push({t:'deal',to:'d',c:c});
+    for(i=0;i<3;i++){ c=tDraw(); R.P[i].push(c); ev.push({t:'deal',to:i,c:c}); }
+    c=tDraw(); R.D.push(c); ev.push({t:'deal',to:'d',c:c,down:true});
+    R.dbj=(htot(R.D).t===21);
+    if(R.dbj){ ev.push({t:'msg',txt:'לדילר בלאק ג׳ק'}); ev.push({t:'reveal'}); }
+    T.queue=ev; T.qi=0;
+    tStep();
+  }
+  function tGenBot(i){
+    var R=T.R,a,c;
+    for(;;){
+      a=aiMove(R.P[i],R.D[0]);
+      if(a==='S') break;
+      if(a==='D'){ R.dbl[i]=true; T.queue.push({t:'tag',to:i,txt:'הכפלה'}); }
+      c=tDraw(); R.P[i].push(c); T.queue.push({t:'deal',to:i,c:c});
+      if(a==='D') break;
+      if(htot(R.P[i]).t>21) break;
+    }
+  }
+  function tGenDealer(){
+    var R=T.R,ev=[{t:'turn',to:'d'},{t:'reveal'}],c,i,alive=false;
+    for(i=0;i<3;i++){ var h=R.P[i],t=htot(h).t; if(t<=21 && !(h.length===2&&t===21)) alive=true; }
+    if(alive){ while(htot(R.D).t<17){ c=tDraw(); R.D.push(c); ev.push({t:'deal',to:'d',c:c}); } }
+    return ev;
+  }
+  /* מחזיר false כשהסיבוב נגמר */
+  function tNextPhase(){
+    var R=T.R;
+    R.phase++;
+    if(R.dbj && R.phase>=1 && R.phase<=4) R.phase=5;
+    if(R.phase>=1 && R.phase<=3){
+      var i=R.phase-1;
+      T.queue=[{t:'turn',to:i}]; T.qi=0;
+      if(i===ME && R.you){
+        if(htot(R.P[i]).t!==21) T.queue.push({t:'await'});
+      } else tGenBot(i);
+      return true;
+    }
+    if(R.phase===4){ T.queue=tGenDealer(); T.qi=0; return true; }
+    if(R.phase===5){ T.queue=[{t:'settle'}]; T.qi=0; return true; }
+    if(R.phase===6){
+      var n=R.D.length+R.P[0].length+R.P[1].length+R.P[2].length;
+      T.queue=[{t:'clear',n:n}]; T.qi=0; return true;
+    }
+    return false;
+  }
+
+  function tSettle(){
+    var R=T.R,dt=htot(R.D).t,dbust=dt>21,i;
+    for(i=0;i<3;i++){
+      var h=R.P[i],pt=htot(h).t,pbj=(h.length===2&&pt===21),res,cls,u;
+      if(pt>21){ res='נשרף'; cls='lose'; u=-1; }
+      else if(R.dbj){ if(pbj){ res='תיקו'; cls=''; u=0; } else { res='הפסיד'; cls='lose'; u=-1; } }
+      else if(pbj){ res='בלאק ג׳ק'; cls='win'; u=1.5; }
+      else if(dbust||pt>dt){ res='ניצח'; cls='win'; u=1; }
+      else if(pt===dt){ res='תיקו'; cls=''; u=0; }
+      else { res='הפסיד'; cls='lose'; u=-1; }
+      if(R.dbl[i]) u*=2;
+      var tg=tSpot(i).querySelector('.tag');
+      var txt=(tg.textContent?tg.textContent+' · ':'')+res;
+      if(i===ME && R.you){ u*=R.bet; tst.units+=u; txt+=' ('+fmtU(u)+')'; }
+      tg.textContent=txt; tg.className='tag '+cls;
+    }
+    var dtg=tSpot('d').querySelector('.tag');
+    dtg.textContent=dbust?'נשרף':''; dtg.className='tag'+(dbust?' win':'');
+    ['d',0,1,2].forEach(function(x){ tSpot(x).classList.remove('active'); });
+    tPaintStats();
+  }
+
+  function tDelay(e){
+    if(e.t==='deal'||e.t==='reveal') return T.speed;
+    if(e.t==='settle') return Math.round(T.speed*2.4);
+    if(e.t==='clear'||e.t==='msg') return Math.round(T.speed*0.8);
+    return 0;
+  }
+  function tStep(){
+    T.to=null;
+    if(T.paused||T.waiting||T.awaitUser||!T.running) return;
+    if(T.qi>=T.queue.length){
+      if(!tNextPhase()){ tEndRound(); return; }
+      tStep(); return;
+    }
+    var e=T.queue[T.qi++],arr,i;
+    if(e.t==='deal'){
+      arr=T.hands[e.to]; arr.push({c:e.c,down:!!e.down});
+      tRenderHand(e.to,arr.length-1);
+      T.shown++; tStacks();
+      if(!e.down) tAdd(e.c);
+    } else if(e.t==='reveal'){
+      arr=T.hands.d;
+      for(i=0;i<arr.length;i++) if(arr[i].down){ arr[i].down=false; tAdd(arr[i].c); tRenderHand('d',i,'flip'); }
+    } else if(e.t==='turn'){
+      ['d',0,1,2].forEach(function(x){ tSpot(x).classList.toggle('active',x===e.to); });
+      if(e.to==='d') tWait('הדילר משחק');
+      else if(!(e.to===ME && T.R.you)) tWait('תור של '+tSeatName(e.to));
+    } else if(e.t==='tag'){
+      var tg=tSpot(e.to).querySelector('.tag'); tg.textContent=e.txt; tg.className='tag';
+      if(e.txt==='הכפלה' && T.R){ T.R.chips[e.to]*=2; tChips(e.to,T.R.chips[e.to]); }
+    } else if(e.t==='msg'){
+      el('tMsg').textContent=e.txt;
+    } else if(e.t==='await'){
+      T.awaitUser=true;
+      tShowActions(true);
+      if(T.coach) tCoachTurn();
+      return;
+    } else if(e.t==='settle'){
+      tSettle();
+    } else if(e.t==='clear'){
+      T.disc+=e.n; tResetHands(); tStacks(); el('tMsg').textContent=''; tWait('');
+    }
+    var d=tDelay(e);
+    if(d===0) tStep(); else T.to=setTimeout(tStep,d);
+  }
+
+  function tWait(txt){ el('tWait').textContent=txt||''; }
+  function tSeatName(i){ return i===0?'רון':(i===2?'מאיה':((T.R&&T.R.you)?'אתה':'אבי')); }
+  function tShowActions(on){
+    el('tActs').classList.toggle('hidden',!on);
+    el('tWait').classList.toggle('hidden',on);
+    if(on) el('aDbl').disabled=(T.R.P[ME].length!==2);
+  }
+  function tAct(a){
+    if(!T.awaitUser||T.paused) return;
+    var R=T.R,h=R.P[ME];
+    if(a==='D' && h.length!==2) return;
+    var rec=tRecommend(),good=(a===rec.act);
+    tst.dec++; if(good) tst.decOk++;
+    tPaintStats();
+    if(T.coach){
+      el('tCoachFb').innerHTML= good
+        ? '<span class="fbOk">'+(rec.dev?'נכון — זיהית את הסטייה.':'נכון.')+'</span>'
+        : '<span class="fbBad">בחרת '+actName(a)+'. עדיף היה '+actName(rec.act)+' — '+rec.why+'.</span>';
+    }
+    T.awaitUser=false;
+    tShowActions(false);
+    T.queue=[]; T.qi=0;
+    if(a!=='S'){
+      if(a==='D'){ R.dbl[ME]=true; T.queue.push({t:'tag',to:ME,txt:'הכפלה'}); }
+      var c=tDraw(); h.push(c); T.queue.push({t:'deal',to:ME,c:c});
+      if(a==='H' && htot(h).t<21) T.queue.push({t:'await'});
+    }
+    tStep();
+  }
+  el('aHit').addEventListener('click',function(){ tAct('H'); });
+  el('aStand').addEventListener('click',function(){ tAct('S'); });
+  el('aDbl').addEventListener('click',function(){ tAct('D'); });
+
+  function tEndRound(){
+    T.round++; T.since++;
+    el('tRound').textContent=T.round;
+    if(T.pos>=T.cut){ T.shoeEnd=true; tAsk(true); return; }
+    var need=(T.ask==='r')?T.nextAsk:T.ask;
+    if(need>0 && T.since>=need){ tAsk(false); return; }
+    tBegin();
+  }
+  function tNextRound(){
+    if(T.shoeEnd){
+      T.shoeNo++; el('tShoeNo').textContent=T.shoeNo;
+      tNewShoe(); tPaintCount();
+      el('tMsg').textContent='ערבוב — נעל חדשה, הספירה מתאפסת';
+      T.shufT=setTimeout(function(){ T.shufT=null; el('tMsg').textContent=''; tBegin(); }, Math.max(1400,T.speed*2));
+      return;
+    }
+    tBegin();
+  }
+  function tRollAsk(){ T.nextAsk=2+Math.floor(Math.random()*6); }
+  function tAsk(isEnd){
+    T.waiting=true; T.since=0; tWait('');
+    el('tCountRow').style.display='none';
+    if(T.ask==='r') tRollAsk();
+    el('tAskTitle').textContent=isEnd?'סוף הנעל — מה הספירה הרצה?':'מה הספירה הרצה?';
+    el('tAnswer').classList.remove('hidden');
+    el('tResult').classList.add('hidden');
+    el('tContRow').classList.add('hidden');
+    el('tPauseBtn').classList.add('hidden');
+    el('tGuess').value='';
+    el('tPreview').textContent='נקודה בהתחלה = מינוס';
+    el('tGuess').focus();
+  }
+  function tResume(){
+    T.waiting=false;
+    tPaintCount();
+    el('tAnswer').classList.add('hidden');
+    el('tResult').classList.add('hidden');
+    el('tContRow').classList.add('hidden');
+    el('tPauseBtn').classList.remove('hidden');
+    tNextRound();
+  }
+
+  el('tCheck').addEventListener('click',function(){
+    var g=parseGuess(el('tGuess').value);
+    if(g===null){ el('tGuess').focus(); return; }
+    var ok=(g===T.count);
+    tst.total++; if(ok){ tst.hits++; tst.streak++; } else tst.streak=0;
+    var r0=tTC(),tp=tTemp(r0.tc);
+    var r=el('tResult');
+    r.className='panel verdict '+(ok?'ok':'no');
+    r.innerHTML=(ok
+        ? '<b>מדויק. הספירה '+fmt(T.count)+'</b>'
+        : '<b>הספירה היא '+fmt(T.count)+', רשמת '+fmt(g)+'</b>')+
+      '<p>נשארו כ-'+r0.dl+' חפיסות → ספירה אמיתית '+signed1(r0.tc)+', הנעל '+tp.txt+'.</p>'+
+      (T.shoeEnd?'<p>זה סוף הנעל. אחרי הערבוב הספירה תתאפס.</p>':'');
+    r.classList.remove('hidden');
+    el('tAnswer').classList.add('hidden');
+    el('tContRow').classList.remove('hidden');
+    tPaintStats();
+  });
+  el('tSkip').addEventListener('click',tResume);
+  el('tCont').addEventListener('click',tResume);
+  el('tGuess').addEventListener('input',function(){
+    var v=parseGuess(el('tGuess').value);
+    el('tPreview').textContent=(v===null)?'נקודה בהתחלה = מינוס':('נקרא כ: '+fmt(v));
+  });
+  el('tGuess').addEventListener('keydown',function(e){ if(e.key==='Enter') el('tCheck').click(); });
+
+  function tStartGame(){
+    T.running=true; T.paused=false; T.waiting=false; T.awaitUser=false; T.betting=false;
+    T.round=0; T.since=0; T.shoeNo=1; tRollAsk();
+    el('tRound').textContent='0'; el('tShoeNo').textContent='1';
+    tNewShoe(); tPaintCount();
+    el('tStart').classList.add('hidden');
+    el('tPauseBtn').classList.remove('hidden');
+    el('tRestart').classList.remove('hidden');
+    el('tPauseBtn').textContent='השהה';
+    el('tMsg').textContent='';
+    var sc=el('tScene');
+    if(sc && sc.scrollIntoView){ try{ sc.scrollIntoView({block:'start',behavior:REDUCED?'auto':'smooth'}); }catch(err){} }
+    tBegin();
+  }
+  el('tStart').addEventListener('click',function(){ if(!T.running) tStartGame(); });
+  el('tRestart').addEventListener('click',function(){
+    if(T.to){ clearTimeout(T.to); T.to=null; }
+    if(T.shufT){ clearTimeout(T.shufT); T.shufT=null; }
+    T.running=false; T.paused=false; T.waiting=false; T.awaitUser=false; T.betting=false;
+    ['tActs','tAnswer','tResult','tContRow'].forEach(function(id){ el(id).classList.add('hidden'); });
+    el('tWait').classList.remove('hidden'); tWait('');
+    tResetHands();
+    tStartGame();
+  });
+  function tHalt(){
+    if(!T.running||T.paused||T.waiting) return;
+    T.paused=true;
+    if(T.to){ clearTimeout(T.to); T.to=null; }
+    el('tPauseBtn').textContent='המשך';
+    el('tMsg').textContent='מושהה';
+  }
+  el('tPauseBtn').addEventListener('click',function(){
+    if(T.waiting) return;
+    if(!T.paused){ tHalt(); }
+    else {
+      T.paused=false;
+      el('tPauseBtn').textContent='השהה';
+      el('tMsg').textContent='';
+      if(T.betting) tDeal();
+      else if(!T.shufT && !T.awaitUser) tStep();
+    }
+  });
+
+  function tSetHint(){
+    var a=T.ask==='r'?'שאלה אקראית':(T.ask===0?'שאלה בסוף נעל':(T.ask===1?'שאלה כל סיבוב':'שאלה כל '+T.ask+' סיבובים'));
+    el('tSetHint').textContent=(T.speed/1000).toFixed(1)+' שנ׳, '+a+(T.coach?', מאמן':'');
+  }
+  el('tSpeed').addEventListener('input',function(e){
+    T.speed=+e.target.value;
+    el('tSpeedVal').textContent=(T.speed/1000).toFixed(1)+' שנ׳';
+    tSetHint();
+  });
+  Array.prototype.forEach.call(el('tAskSeg').children,function(b){
+    b.addEventListener('click',function(){
+      Array.prototype.forEach.call(el('tAskSeg').children,function(x){ x.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      T.ask=(b.dataset.ask==='r')?'r':+b.dataset.ask;
+      if(T.ask==='r') tRollAsk();
+      tSetHint();
+    });
+  });
+  el('tLive').addEventListener('change',function(e){ T.live=e.target.checked; tPaintCount(); });
+  el('tPlay').addEventListener('change',function(e){ T.play=e.target.checked; el('tBetRow').classList.toggle('hidden',!T.play); });
+  Array.prototype.forEach.call(el('tBetSeg').children,function(b){
+    b.addEventListener('click',function(){
+      Array.prototype.forEach.call(el('tBetSeg').children,function(x){ x.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      T.bet=+b.dataset.bet;
+      if(T.betting && T.R && T.R.you){ T.R.chips[ME]=T.bet; tChips(ME,T.bet); }
+    });
+  });
+  el('tCoachT').addEventListener('change',function(e){
+    T.coach=e.target.checked;
+    tSetHint();
+    var mine=T.R && T.R.you;
+    tCoachShow(T.coach && (mine || !T.running));
+    if(T.coach && T.awaitUser) tCoachTurn();
+    else if(T.coach && !T.running){
+      el('tCoachTemp').innerHTML='המאמן יופיע בכל סיבוב: ספירה, טמפרטורה של הנעל, גודל הימור מומלץ, וההמלצה לכל החלטה שלך.';
+      el('tCoachRec').innerHTML=''; el('tCoachFb').innerHTML='';
+    }
+  });
+
+  tResetHands(); tNewShoe();
+  el('tAv1').innerHTML=AV_YOU;
+  tSetHint();
+
   newDeckRound();
 })();
 </script>
