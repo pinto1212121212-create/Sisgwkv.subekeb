@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מאמן ספירת קלפים — Hi-Lo</title>
+<style>
+  :root{
+    --ink:#10141C; --panel:#1A2030; --panel-2:#222A3C; --line:#2E3850;
+    --face:#F3F0E7; --text:#D8DEEA; --muted:#8792A8;
+    --plus:#5BBF8F; --minus:#E06A62; --zero:#8792A8; --gold:#D9B26A;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{background:var(--ink);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Arial Hebrew",Arial,sans-serif;
+    min-height:100vh;padding:16px 14px 44px;line-height:1.5}
+  .wrap{max-width:520px;margin:0 auto}
+  header{margin-bottom:16px}
+  h1{font-size:23px;font-weight:700;margin:0 0 4px;letter-spacing:-0.3px}
+  .sub{color:var(--muted);font-size:14px;margin:0}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+  h2{font-size:15px;margin:0 0 10px;font-weight:600}
+
+  /* mode tabs */
+  .tabs{display:flex;gap:6px;margin-bottom:14px}
+  .tabs button{flex:1;background:var(--panel);color:var(--muted);border:1px solid var(--line);
+    border-radius:11px;padding:11px 4px;font-size:13.5px;font-family:inherit;cursor:pointer}
+  .tabs button[aria-pressed=true]{background:var(--panel-2);color:var(--gold);border-color:var(--gold);font-weight:600}
+  .tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .row:last-child{margin-bottom:0}
+  .row label{font-size:14px;flex:0 0 auto}
+  .val{color:var(--gold);font-variant-numeric:tabular-nums;font-size:14px;min-width:62px;text-align:left}
+  input[type=range]{flex:1;appearance:none;height:4px;border-radius:4px;background:var(--line);outline:none;margin:0}
+  input[type=range]::-webkit-slider-thumb{appearance:none;width:22px;height:22px;border-radius:50%;
+    background:var(--gold);cursor:pointer;border:3px solid var(--panel)}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--gold);
+    cursor:pointer;border:3px solid var(--panel)}
+  input[type=range]:focus-visible{box-shadow:0 0 0 3px rgba(217,178,106,.35)}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg button{flex:1 1 calc(33.333% - 4px);min-width:62px;background:var(--panel-2);color:var(--muted);border:1px solid var(--line);
+    border-radius:9px;padding:8px 4px;font-size:13px;font-family:inherit;cursor:pointer}
+  .seg button[aria-pressed=true]{background:var(--gold);color:#1A1207;border-color:var(--gold);font-weight:600}
+  .seg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .switch{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:14px}
+  .switch input{position:absolute;opacity:0;width:0;height:0}
+  .track{width:42px;height:24px;border-radius:12px;background:var(--line);position:relative;transition:background .15s;flex:0 0 auto}
+  .knob{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#707C93;transition:transform .15s}
+  .switch input:checked + .track{background:rgba(91,191,143,.35)}
+  .switch input:checked + .track .knob{background:var(--plus);transform:translateX(-18px)}
+  .switch input:focus-visible + .track{outline:2px solid var(--gold);outline-offset:2px}
+
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 14px;text-align:center;margin-bottom:14px}
+  .felt{display:flex;gap:10px;justify-content:center;align-items:center;min-height:186px}
+  .card{width:130px;height:186px;background:var(--face);border-radius:11px;
+    display:flex;align-items:center;justify-content:center;position:relative;
+    box-shadow:0 8px 22px rgba(0,0,0,.45);direction:ltr;flex:0 0 auto}
+  .felt.pair .card{width:108px;height:154px}
+  .felt.pair .card .rank{font-size:42px}
+  .felt.pair .card .suit{font-size:28px}
+  .card.empty{background:var(--panel-2);border:1px dashed var(--line);box-shadow:none}
+  .card .rank{font-size:52px;font-weight:600;line-height:1}
+  .card .suit{font-size:34px;line-height:1;margin-top:2px}
+  .card .mid{display:flex;flex-direction:column;align-items:center}
+  .card.black .rank,.card.black .suit{color:#1B1B1B}
+  .card.red .rank,.card.red .suit{color:#B3252B}
+  .card .corner{position:absolute;font-size:15px;font-weight:600;line-height:1}
+  .card .corner.tl{top:9px;left:10px}
+  .card .corner.br{bottom:9px;right:10px;transform:rotate(180deg)}
+  .hint{color:var(--muted);font-size:14px;margin:0}
+
+  .meters{display:flex;gap:10px;margin-top:16px}
+  .meter{flex:1;background:var(--panel-2);border-radius:10px;padding:9px 6px}
+  .meter .k{font-size:11px;color:var(--muted);margin-bottom:2px}
+  .meter .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums}
+  .v.plus{color:var(--plus)} .v.minus{color:var(--minus)} .v.zero{color:var(--zero)}
+  .bar{height:5px;background:var(--panel-2);border-radius:3px;margin-top:14px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--gold);width:0%;transition:width .1s linear}
+
+  .actions{display:flex;gap:10px}
+  button.big{flex:1;padding:15px;border-radius:12px;border:none;font-size:16px;
+    font-weight:600;font-family:inherit;cursor:pointer}
+  button.primary{background:var(--gold);color:#1A1207}
+  button.ghost{background:var(--panel-2);color:var(--text);border:1px solid var(--line)}
+  button.big:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  button:disabled{opacity:.4;cursor:default}
+
+  .answer input[type=text],.answer input[type=number]{width:100%;padding:14px;font-size:24px;text-align:center;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:11px;color:var(--text);
+    font-family:inherit;font-variant-numeric:tabular-nums;margin-bottom:10px}
+  .answer input:focus{outline:2px solid var(--gold);outline-offset:1px}
+  .verdict{border-radius:11px;padding:13px;margin-bottom:12px;font-size:15px}
+  .verdict.ok{background:rgba(91,191,143,.12);border:1px solid rgba(91,191,143,.4)}
+  .verdict.no{background:rgba(224,106,98,.12);border:1px solid rgba(224,106,98,.4)}
+  .verdict b{font-size:17px}
+  .verdict p{margin:6px 0 0;color:var(--muted);font-size:13.5px}
+
+  table.ref{width:100%;border-collapse:collapse;font-size:14px}
+  table.ref td{padding:7px 4px;border-bottom:1px solid var(--line)}
+  table.ref tr:last-child td{border-bottom:none}
+  table.ref td:last-child{text-align:left;font-weight:700;font-variant-numeric:tabular-nums}
+  .note{color:var(--muted);font-size:13px;margin:10px 0 0}
+  .hidden{display:none !important}
+
+  /* deck estimation */
+  .tray{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+    min-height:230px;padding-bottom:6px}
+  .stackWrap{position:relative;display:flex;flex-direction:column;align-items:center}
+  .topface{width:150px;height:26px;background:var(--face);border-radius:5px 5px 0 0;
+    border-bottom:1px solid #C9C2B0}
+  .edge{width:150px;background:repeating-linear-gradient(to bottom,
+      #F3F0E7 0px,#F3F0E7 2px,#C7C0AE 2px,#C7C0AE 3px);
+    border-radius:0 0 4px 4px;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+  .ruler{color:var(--muted);font-size:12px;margin-top:10px}
+  .guessSeg{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .guessSeg button{flex:0 0 calc(25% - 5px);background:var(--panel-2);color:var(--text);
+    border:1px solid var(--line);border-radius:9px;padding:11px 2px;font-size:14px;
+    font-family:inherit;cursor:pointer;font-variant-numeric:tabular-nums}
+  .guessSeg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>מאמן ספירת קלפים</h1>
+  <p class="sub">שיטת Hi-Lo — שלושה תרגילים, מהאיטי למהיר</p>
+</header>
+
+<div class="tabs" id="tabs">
+  <button data-mode="single" aria-pressed="true">קלף בודד</button>
+  <button data-mode="pair" aria-pressed="false">זוגות</button>
+  <button data-mode="decks" aria-pressed="false">הערכת חפיסות</button>
+</div>
+
+<!-- ===== מצבי ספירה ===== -->
+<div id="countMode">
+
+  <div class="panel" id="settings">
+    <div class="row">
+      <label for="speed">מהירות</label>
+      <input type="range" id="speed" min="200" max="2500" step="100" value="1200">
+      <span class="val" id="speedVal">1.2 שנ׳</span>
+    </div>
+    <div class="row">
+      <label>קצב שולחן</label>
+      <div class="seg" id="presetSeg">
+        <button data-ms="1400" aria-pressed="false">שולחן מלא</button>
+        <button data-ms="900" aria-pressed="false">3–4 שחקנים</button>
+        <button data-ms="600" aria-pressed="false">ראש בראש</button>
+        <button data-ms="350" aria-pressed="false">דילר מהיר</button>
+      </div>
+    </div>
+    <div class="row">
+      <label>כמה קלפים</label>
+      <div class="seg" id="lenSeg">
+        <button data-len="8" aria-pressed="false">4 זוגות</button>
+        <button data-len="16" aria-pressed="false">8 זוגות</button>
+        <button data-len="20" aria-pressed="true">20</button>
+        <button data-len="52" aria-pressed="false">52</button>
+        <button data-len="104" aria-pressed="false">104</button>
+        <button data-len="312" aria-pressed="false">6 חפיסות</button>
+      </div>
+    </div>
+    <div class="row">
+      <label class="switch">
+        <input type="checkbox" id="showLive">
+        <span class="track"><span class="knob"></span></span>
+        גלגלי עזר — הצג ספירה תוך כדי
+      </label>
+    </div>
+    <div class="row">
+      <label>ספירה התחלתית</label>
+      <div class="seg" id="offsetSeg">
+        <button data-off="0" aria-pressed="true">כבוי</button>
+        <button data-off="-2" aria-pressed="false">2−</button>
+        <button data-off="-1" aria-pressed="false">1−</button>
+        <button data-off="1" aria-pressed="false">1+</button>
+        <button data-off="2" aria-pressed="false">2+</button>
+        <button data-off="rand" aria-pressed="false">אקראי</button>
+      </div>
+    </div>
+    <div class="row">
+      <label class="switch">
+        <input type="checkbox" id="distract">
+        <span class="track"><span class="knob"></span></span>
+        הסחות דעת — רעש שולחן
+      </label>
+    </div>
+    <div class="row">
+      <label class="switch">
+        <input type="checkbox" id="aceSide">
+        <span class="track"><span class="knob"></span></span>
+        ספירת אסים במקביל
+      </label>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="felt" id="felt">
+      <div class="card empty" id="card"><div class="mid"><span class="hint">מוכן</span></div></div>
+    </div>
+    <div id="chatter" style="min-height:22px;color:var(--muted);font-size:13px;margin-top:10px"></div>
+    <div class="meters">
+      <div class="meter"><div class="k">קלפים</div><div class="v" id="mProgress">0</div></div>
+      <div class="meter"><div class="k">ספירה רצה</div><div class="v zero" id="mCount">—</div></div>
+      <div class="meter"><div class="k">זמן</div><div class="v" id="mTime">0.0</div></div>
+    </div>
+    <div class="bar"><i id="bar"></i></div>
+  </div>
+
+  <div class="actions">
+    <button class="big primary" id="startBtn">התחל</button>
+    <button class="big ghost hidden" id="stopBtn">עצור</button>
+  </div>
+
+  <div class="panel answer hidden" id="answerPanel">
+    <h2>מה הספירה הרצה?</h2>
+    <input type="text" id="guess" inputmode="decimal" autocomplete="off" placeholder="0">
+    <p class="note" id="guessPreview" style="margin:-4px 0 10px;text-align:center">נקודה בהתחלה = מינוס. ‎.6 נקרא כ-6−</p>
+    <div id="aceBox" class="hidden">
+      <h2 style="margin-top:6px">כמה אסים עברו?</h2>
+      <input type="text" id="aceGuess" inputmode="numeric" autocomplete="off" placeholder="0">
+    </div>
+    <div class="actions">
+      <button class="big primary" id="checkBtn">בדוק</button>
+      <button class="big ghost" id="skipBtn">סבב חדש</button>
+    </div>
+  </div>
+
+  <div id="result" class="hidden"></div>
+
+  <div class="panel" id="pairHelp" style="display:none">
+    <h2>למה זוגות</h2>
+    <p class="note" style="margin-top:0">בשולחן אמיתי הקלפים נחשפים בצמדים ובשלשות, לא אחד-אחד. ברגע שאתה מזהה זוג מתקזז — K עם 5, אס עם 3, כל שני קלפים ניטרליים — אתה מדלג עליו בלי לחשב. זה חוסך בערך חצי מעומס העבודה ומשחרר קשב לשולחן עצמו.</p>
+    <p class="note">חפש קודם את הצמדים שמסתכמים באפס. רק מה שנשאר נכנס לספירה.</p>
+  </div>
+
+</div>
+
+<!-- ===== הערכת חפיסות ===== -->
+<div id="deckMode" class="hidden">
+
+  <div class="panel">
+    <h2>כמה חפיסות בערימה?</h2>
+    <p class="note" style="margin-top:0">זה החלק שמתחילים מזניחים. ספירה רצה בלי חלוקה בחפיסות שנותרו היא מספר חסר משמעות — והחלוקה נעשית לפי הערכה בעין של מגש הקלפים, תוך שנייה, בלי לספור.</p>
+    <p class="note">הרוחב של הקלף הוא המסרגל שלך: חפיסה אחת היא בערך שישית מאורך קלף.</p>
+  </div>
+
+  <div class="stage">
+    <div class="tray">
+      <div class="stackWrap">
+        <div class="topface"></div>
+        <div class="edge" id="edge" style="height:40px"></div>
+      </div>
+      <div class="ruler">רוחב הערימה בתמונה = קלף אחד לרוחבו</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="guessSeg" id="deckGuess"></div>
+  </div>
+
+  <div id="deckResult" class="hidden"></div>
+
+  <div class="panel">
+    <h2>הסבב הזה</h2>
+    <table class="ref">
+      <tr><td>ניחושים</td><td id="dTotal">0</td></tr>
+      <tr><td>בטווח חצי חפיסה</td><td id="dHits">0</td></tr>
+      <tr><td>סטייה ממוצעת</td><td id="dAvg">—</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<!-- ===== משותף ===== -->
+<div class="panel" id="statsPanel">
+  <h2>הסבב הזה</h2>
+  <table class="ref">
+    <tr><td>תרגולים</td><td id="sTotal">0</td></tr>
+    <tr><td>מדויקים</td><td id="sHits">0</td></tr>
+    <tr><td>רצף נוכחי</td><td id="sStreak">0</td></tr>
+    <tr><td>קלפים לשנייה</td><td id="sRate">—</td></tr>
+  </table>
+</div>
+
+<div class="panel">
+  <h2>ערכי Hi-Lo</h2>
+  <table class="ref">
+    <tr><td>2, 3, 4, 5, 6</td><td style="color:var(--plus)">+1</td></tr>
+    <tr><td>7, 8, 9</td><td style="color:var(--zero)">0</td></tr>
+    <tr><td>10, J, Q, K, A</td><td style="color:var(--minus)">−1</td></tr>
+  </table>
+  <p class="note">חפיסה שלמה מסתכמת תמיד באפס. אם סיימת 52 קלפים ולא קיבלת 0 — נפלה טעות בדרך.</p>
+  <p class="note">ספירה אמיתית = ספירה רצה ÷ חפיסות שנותרו. זה המספר שקובע, לא הספירה הרצה.</p>
+</div>
+
+</div>
+
+<script>
+(function(){
+  var SUITS=[{s:'\u2660',c:'black'},{s:'\u2665',c:'red'},{s:'\u2666',c:'red'},{s:'\u2663',c:'black'}];
+  var RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+  function hiLo(r){
+    if(r==='2'||r==='3'||r==='4'||r==='5'||r==='6') return 1;
+    if(r==='10'||r==='J'||r==='Q'||r==='K'||r==='A') return -1;
+    return 0;
+  }
+  function buildShoe(n){
+    var d=[],i,j,k;
+    for(i=0;i<n;i++) for(j=0;j<SUITS.length;j++) for(k=0;k<RANKS.length;k++)
+      d.push({r:RANKS[k],s:SUITS[j].s,c:SUITS[j].c});
+    for(i=d.length-1;i>0;i--){var x=Math.floor(Math.random()*(i+1));var t=d[i];d[i]=d[x];d[x]=t;}
+    return d;
+  }
+  var el=function(id){return document.getElementById(id);};
+
+  /* ---------- מצב ---------- */
+  var mode='single', perFlash=1;
+  var speed=1200, len=20, live=false;
+  var deck=[], idx=0, count=0, timer=null, tick=null, t0=0, running=false;
+  var stats={total:0,hits:0,streak:0,rate:null};
+  var dstats={total:0,hits:0,err:0};
+
+  /* ---------- טאבים ---------- */
+  Array.prototype.forEach.call(el('tabs').children,function(b){
+    b.addEventListener('click',function(){
+      if(running) abort();
+      Array.prototype.forEach.call(el('tabs').children,function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      mode=b.dataset.mode;
+      perFlash = (mode==='pair')?2:1;
+      var counting = (mode!=='decks');
+      el('countMode').classList.toggle('hidden',!counting);
+      el('deckMode').classList.toggle('hidden',counting);
+      el('statsPanel').classList.toggle('hidden',!counting);
+      el('pairHelp').style.display = (mode==='pair')?'block':'none';
+      el('felt').classList.toggle('pair',mode==='pair');
+      resetFelt('מוכן');
+      if(!counting) newDeckRound();
+    });
+  });
+
+  /* ---------- בקרות ---------- */
+  el('speed').addEventListener('input',function(e){
+    speed=+e.target.value;
+    el('speedVal').textContent=(speed/1000).toFixed(1)+' שנ׳';
+    markPreset();
+  });
+  function markPreset(){
+    Array.prototype.forEach.call(el('presetSeg').children,function(x){
+      x.setAttribute('aria-pressed', (+x.dataset.ms===speed)?'true':'false');
+    });
+  }
+  Array.prototype.forEach.call(el('presetSeg').children,function(b){
+    b.addEventListener('click',function(){
+      if(running) return;
+      speed=+b.dataset.ms;
+      el('speed').value=speed;
+      el('speedVal').textContent=(speed/1000).toFixed(1)+' שנ׳';
+      markPreset();
+    });
+  });
+  Array.prototype.forEach.call(el('lenSeg').children,function(b){
+    b.addEventListener('click',function(){
+      if(running) return;
+      Array.prototype.forEach.call(el('lenSeg').children,function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      len=+b.dataset.len;
+    });
+  });
+  el('showLive').addEventListener('change',function(e){
+    live=e.target.checked;
+    if(!running) el('mCount').textContent='—';
+  });
+  var noise=false, aceOn=false, aces=0;
+  var offsetMode=0, startCount=0, leadIn=null;
+  function fmt(n){return (n>0?'+':(n<0?'−':''))+Math.abs(n);}
+  Array.prototype.forEach.call(el('offsetSeg').children,function(b){
+    b.addEventListener('click',function(){
+      if(running) return;
+      Array.prototype.forEach.call(el('offsetSeg').children,function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      offsetMode = (b.dataset.off==='rand') ? 'rand' : parseInt(b.dataset.off,10);
+    });
+  });
+  el('distract').addEventListener('change',function(e){
+    noise=e.target.checked;
+    if(!noise) el('chatter').textContent='';
+  });
+  el('aceSide').addEventListener('change',function(e){aceOn=e.target.checked;});
+
+  var CHATTER=[
+    'הדילר: מישהו רוצה משקה?','שחקן: מה, שוב הוא תפס 21?',
+    'הדילר: הימורים בבקשה','שחקן ליד: אני מרגיש שהמזל מתהפך',
+    'הדילר: ביטוח?','מלצרית: קפה? מים?',
+    'שחקן: אתה מכאן?','הדילר: תודה, בהצלחה',
+    'רעש מהשולחן ליד: יששש!','הדילר: מחליפים חפיסה עוד מעט',
+    'שחקן: כמה זה המינימום פה?','הדילר: שולחן חם היום',
+    'מישהו מאחור: סליחה, יש כאן מקום?','הדילר: אחד עשרה, עוד קלף?'
+  ];
+
+  /* ---------- ציור ---------- */
+  function cardHTML(c){
+    return '<div class="card '+c.c+'">'+
+      '<span class="corner tl">'+c.r+c.s+'</span>'+
+      '<div class="mid"><span class="rank">'+c.r+'</span><span class="suit">'+c.s+'</span></div>'+
+      '<span class="corner br">'+c.r+c.s+'</span></div>';
+  }
+  function resetFelt(txt){
+    el('felt').innerHTML='<div class="card empty"><div class="mid"><span class="hint">'+txt+'</span></div></div>';
+    el('bar').style.width='0%';
+    el('mProgress').textContent='0';
+  }
+  function paintCount(){
+    var m=el('mCount');
+    m.className='v '+(count>0?'plus':count<0?'minus':'zero');
+    m.textContent=(count>0?'+':'')+count;
+  }
+
+  /* ---------- מנוע התרגול ---------- */
+  function start(){
+    var decks=Math.max(1,Math.ceil(len/52));
+    deck=buildShoe(decks).slice(0,len);
+    startCount = (offsetMode==='rand')
+      ? (function(){var pool=[-3,-2,-1,1,2,3];return pool[Math.floor(Math.random()*pool.length)];})()
+      : offsetMode;
+    idx=0;count=startCount;aces=0;running=true;
+    el('settings').style.opacity=.5;
+    el('startBtn').classList.add('hidden');
+    el('stopBtn').classList.remove('hidden');
+    el('answerPanel').classList.add('hidden');
+    el('result').classList.add('hidden');
+    el('mCount').textContent = live?fmt(startCount):'—';
+    el('mCount').className='v zero';
+    el('mProgress').textContent='0';
+    el('bar').style.width='0%';
+    if(startCount!==0){
+      el('felt').innerHTML='<div class="card empty"><div class="mid">'+
+        '<span class="hint">מתחילים מ־</span>'+
+        '<span style="font-size:40px;font-weight:700;color:var(--gold)">'+fmt(startCount)+'</span>'+
+        '</div></div>';
+      leadIn=setTimeout(beginDeal,1800);
+    } else {
+      beginDeal();
+    }
+  }
+  function beginDeal(){
+    leadIn=null;
+    t0=Date.now();
+    tick=setInterval(function(){el('mTime').textContent=((Date.now()-t0)/1000).toFixed(1);},100);
+    next();
+    timer=setInterval(next,speed);
+  }
+  function next(){
+    if(idx>=deck.length){finish();return;}
+    var html='',i;
+    for(i=0;i<perFlash && idx<deck.length;i++){
+      var c=deck[idx];
+      html+=cardHTML(c);
+      count+=hiLo(c.r);
+      if(c.r==='A') aces++;
+      idx++;
+    }
+    el('felt').innerHTML=html;
+    if(noise){
+      if(Math.random()<0.45){
+        el('chatter').textContent=CHATTER[Math.floor(Math.random()*CHATTER.length)];
+      } else if(Math.random()<0.3){
+        el('chatter').textContent='';
+      }
+      el('felt').style.transform='translateX('+((Math.random()*24)-12).toFixed(0)+'px)';
+    } else {
+      el('felt').style.transform='';
+    }
+    el('mProgress').textContent=idx;
+    el('bar').style.width=(idx/deck.length*100)+'%';
+    if(live) paintCount();
+  }
+  function stopTimers(){
+    clearInterval(timer);clearInterval(tick);
+    if(leadIn){clearTimeout(leadIn);leadIn=null;}
+    timer=null;tick=null;
+  }
+  function finish(){
+    stopTimers();running=false;
+    var secs=(Date.now()-t0)/1000;
+    stats.rate=(deck.length/secs).toFixed(1);
+    el('mTime').textContent=secs.toFixed(1);
+    resetFelt('סיימת');
+    el('bar').style.width='100%';
+    el('mProgress').textContent=deck.length;
+    el('stopBtn').classList.add('hidden');
+    el('settings').style.opacity=1;
+    el('answerPanel').classList.remove('hidden');
+    el('chatter').textContent='';
+    el('felt').style.transform='';
+    el('aceBox').classList.toggle('hidden',!aceOn);
+    el('aceGuess').value='';
+    el('guess').value='';
+    el('guessPreview').textContent='נקודה בהתחלה = מינוס. ‎.6 נקרא כ-6−';
+    el('guess').focus();
+  }
+  function abort(){
+    stopTimers();running=false;
+    el('settings').style.opacity=1;
+    el('stopBtn').classList.add('hidden');
+    el('startBtn').classList.remove('hidden');
+    el('startBtn').textContent='התחל';
+    el('answerPanel').classList.add('hidden');
+    resetFelt('נעצר');
+  }
+  el('startBtn').addEventListener('click',start);
+  el('stopBtn').addEventListener('click',abort);
+
+  function parseGuess(raw){
+    raw=String(raw||'').trim();
+    if(raw==='') return null;
+    var neg = /[.,\-]/.test(raw);
+    var digits = raw.replace(/[^0-9]/g,'');
+    if(digits==='') return null;
+    var n = parseInt(digits,10);
+    return neg ? -n : n;
+  }
+  el('guess').addEventListener('input',function(){
+    var v=parseGuess(el('guess').value);
+    el('guessPreview').textContent = (v===null)
+      ? 'נקודה בהתחלה = מינוס. ‎.6 נקרא כ-6−'
+      : 'נקרא כ: ' + (v>0?'+':'') + v;
+  });
+
+  el('checkBtn').addEventListener('click',function(){
+    var g=parseGuess(el('guess').value);
+    if(g===null) {el('guess').focus();return;}
+    var aceLine='';
+    if(aceOn){
+      var ag=parseGuess(el('aceGuess').value);
+      if(ag===null){el('aceGuess').focus();return;}
+      aceLine = (ag===aces)
+        ? '<p>אסים: נכון, '+aces+'.</p>'
+        : '<p>אסים: היו '+aces+', רשמת '+ag+'.</p>';
+    }
+    if(startCount!==0){
+      aceLine += '<p>התחלת מ־'+fmt(startCount)+', ולכן '+deck.length+' קלפים הוסיפו '+fmt(count-startCount)+'.</p>';
+    }
+    var ok=(g===count);
+    stats.total++;
+    if(ok){stats.hits++;stats.streak++;} else {stats.streak=0;}
+    var decksUsed=Math.max(1,Math.round(deck.length/52));
+    var tc=(count/decksUsed).toFixed(1);
+    var r=el('result');
+    r.className='panel verdict '+(ok?'ok':'no');
+    r.innerHTML= ok
+      ? '<b>מדויק. הספירה '+(count>0?'+':'')+count+'</b>'+
+        '<p>ספירה אמיתית על נעל בגודל הזה: בערך '+tc+'. אם זה הגיע בקלות, הורד עשירית שנייה.</p>'
+      : '<b>לא. הספירה היא '+(count>0?'+':'')+count+', רשמת '+(g>0?'+':'')+g+'</b>'+
+        '<p>פער של '+Math.abs(count-g)+'. פער קטן ועקבי = קלף בודד חמק. פער גדול = האט וחזור ל-20 קלפים.</p>';
+    r.innerHTML += aceLine;
+    r.classList.remove('hidden');
+    el('sTotal').textContent=stats.total;
+    el('sHits').textContent=stats.hits;
+    el('sStreak').textContent=stats.streak;
+    el('sRate').textContent=stats.rate||'—';
+    el('answerPanel').classList.add('hidden');
+    el('startBtn').classList.remove('hidden');
+    el('startBtn').textContent='עוד סבב';
+    resetFelt('מוכן');
+  });
+  el('skipBtn').addEventListener('click',function(){
+    el('answerPanel').classList.add('hidden');
+    el('result').classList.add('hidden');
+    el('startBtn').textContent='עוד סבב';
+    start();
+  });
+
+  el('guess').addEventListener('keydown',function(e){
+    if(e.key==='Enter') el('checkBtn').click();
+  });
+  el('aceGuess').addEventListener('keydown',function(e){
+    if(e.key==='Enter') el('checkBtn').click();
+  });
+
+  /* ---------- הערכת חפיסות ---------- */
+  var trueDecks=1;
+  var CARD_W=150;               /* רוחב הקלף בתמונה, פיקסלים */
+  var PX_PER_DECK=CARD_W/6.0;   /* חפיסה ≈ שישית מרוחב קלף */
+
+  var opts=[];
+  for(var v=0.5;v<=6.001;v+=0.5) opts.push(Math.round(v*10)/10);
+  opts.forEach(function(o){
+    var b=document.createElement('button');
+    b.textContent=(o%1===0)?o:o.toFixed(1);
+    b.addEventListener('click',function(){judgeDeck(o);});
+    el('deckGuess').appendChild(b);
+  });
+
+  function newDeckRound(){
+    trueDecks=Math.round((0.5+Math.random()*5.5)*2)/2;
+    el('edge').style.height=(trueDecks*PX_PER_DECK).toFixed(1)+'px';
+    el('deckResult').classList.add('hidden');
+  }
+  function judgeDeck(g){
+    var diff=Math.abs(g-trueDecks);
+    var ok=diff<=0.5;
+    dstats.total++;dstats.err+=diff;
+    if(ok) dstats.hits++;
+    var r=el('deckResult');
+    r.className='panel verdict '+(ok?'ok':'no');
+    r.innerHTML= ok
+      ? '<b>בטווח. היו '+trueDecks+' חפיסות</b><p>סטייה של עד חצי חפיסה היא דיוק מספיק לשולחן.</p>'
+      : '<b>היו '+trueDecks+' חפיסות, ניחשת '+g+'</b><p>פער של '+diff.toFixed(1)+' חפיסות. פער כזה משנה את הספירה האמיתית לגמרי — וזה בדיוק מה שקובע את גודל ההימור.</p>';
+    r.classList.remove('hidden');
+    el('dTotal').textContent=dstats.total;
+    el('dHits').textContent=dstats.hits;
+    el('dAvg').textContent=(dstats.err/dstats.total).toFixed(2);
+    setTimeout(newDeckRound,1600);
+  }
+  newDeckRound();
+})();
+</script>
+</body>
+</html>
