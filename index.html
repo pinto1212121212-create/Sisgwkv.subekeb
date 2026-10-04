@@ -794,7 +794,7 @@
   /* ---------- מצב ---------- */
   var mode='single', perFlash=1;
   var speed=1200, len=20, live=false;
-  var deck=[], idx=0, count=0, timer=null, tick=null, t0=0, running=false;
+  var deck=[], shoeDecks=6, idx=0, count=0, timer=null, tick=null, t0=0, running=false;
   var stats={total:0,hits:0,streak:0,rate:null};
   var dstats={total:0,hits:0,err:0};
 
@@ -895,8 +895,9 @@
 
   /* ---------- מנוע התרגול ---------- */
   function start(){
-    var decks=Math.max(1,Math.ceil(len/52));
-    deck=buildShoe(decks).slice(0,len);
+    /* נעל גדולה מהסבב: אחרת חפיסות שלמות תמיד מסתכמות ב-0 */
+    shoeDecks=Math.max(6,Math.ceil(len/52)+2);
+    deck=buildShoe(shoeDecks).slice(0,len);
     startCount = (offsetMode==='rand')
       ? (function(){var pool=[-3,-2,-1,1,2,3];return pool[Math.floor(Math.random()*pool.length)];})()
       : offsetMode;
@@ -1021,8 +1022,8 @@
     var ok=(g===count);
     stats.total++;
     if(ok){stats.hits++;stats.streak++;} else {stats.streak=0;}
-    var decksUsed=Math.max(1,Math.round(deck.length/52));
-    var tc=(count/decksUsed).toFixed(1);
+    var decksLeft=Math.max(0.5,Math.round((shoeDecks*52-deck.length)/52*2)/2);
+    var tc=(count/decksLeft).toFixed(1);
     var r=el('result');
     r.className='panel verdict '+(ok?'ok':'no');
     r.innerHTML= ok
