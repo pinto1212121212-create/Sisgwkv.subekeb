@@ -63,6 +63,8 @@
   .felt.pair .card{width:108px;height:154px}
   .felt.pair .card .rank{font-size:42px}
   .felt.pair .card .suit{font-size:28px}
+  .felt.triple{gap:8px}
+  .felt.triple .card{width:calc((100% - 16px) / 3);max-width:104px;height:auto;aspect-ratio:60/84}
   .card.empty{background:var(--panel-2);border:1px dashed var(--line);filter:none}
   .card .rank{font-size:52px;font-weight:600;line-height:1}
   .card .suit{font-size:34px;line-height:1;margin-top:2px}
@@ -349,6 +351,7 @@
 <div class="tabs" id="tabs">
   <button data-mode="single" aria-pressed="true">קלף בודד</button>
   <button data-mode="pair" aria-pressed="false">זוגות</button>
+  <button data-mode="triple" aria-pressed="false">שלשות</button>
   <button data-mode="decks" aria-pressed="false">הערכת חפיסות</button>
   <button data-mode="table" aria-pressed="false">שולחן</button>
   <button data-mode="prog" aria-pressed="false">התקדמות</button>
@@ -455,6 +458,12 @@
     <h2>למה זוגות</h2>
     <p class="note" style="margin-top:0">בשולחן אמיתי הקלפים נחשפים בצמדים ובשלשות, לא אחד-אחד. ברגע שאתה מזהה זוג מתקזז — K עם 5, אס עם 3, כל שני קלפים ניטרליים — אתה מדלג עליו בלי לחשב. זה חוסך בערך חצי מעומס העבודה ומשחרר קשב לשולחן עצמו.</p>
     <p class="note">חפש קודם את הצמדים שמסתכמים באפס. רק מה שנשאר נכנס לספירה.</p>
+  </div>
+
+  <div class="panel" id="tripleHelp" style="display:none">
+    <h2>איך סופרים שלשה</h2>
+    <p class="note" style="margin-top:0">שלושה קלפים בהבזק אחד — כמו יד של שחקן אחרי משיכה, או קלפי הפתיחה של ראש בראש. קודם מוחקים צמד שמתקזז (קטן מול גבוה), ואז מוסיפים רק את הקלף שנשאר.</p>
+    <p class="note">התוצאה של שלשה היא תמיד בין 3− ל־3+. שלושה קטנים או שלושה גבוהים הם הקפיצות שהכי קל לפספס.</p>
   </div>
 
 </div>
@@ -805,8 +814,8 @@
       Array.prototype.forEach.call(el('tabs').children,function(x){x.setAttribute('aria-pressed','false');});
       b.setAttribute('aria-pressed','true');
       mode=b.dataset.mode;
-      perFlash = (mode==='pair')?2:1;
-      var counting = (mode==='single'||mode==='pair');
+      perFlash = (mode==='pair')?2:(mode==='triple')?3:1;
+      var counting = (mode==='single'||mode==='pair'||mode==='triple');
       el('countMode').classList.toggle('hidden',!counting);
       el('deckMode').classList.toggle('hidden',mode!=='decks');
       el('tableMode').classList.toggle('hidden',mode!=='table');
@@ -814,7 +823,9 @@
       el('statsPanel').classList.toggle('hidden',!counting);
       if(mode==='prog') renderProg();
       el('pairHelp').style.display = (mode==='pair')?'block':'none';
+      el('tripleHelp').style.display = (mode==='triple')?'block':'none';
       el('felt').classList.toggle('pair',mode==='pair');
+      el('felt').classList.toggle('triple',mode==='triple');
       resetFelt('מוכן');
       if(mode==='decks') newDeckRound();
       if(mode!=='table') tHalt();
@@ -1942,7 +1953,7 @@
   function recDec(ok){ DB.data.dec.n++; if(ok) DB.data.dec.ok++; dbSave(); }
   function recBet(ok){ DB.data.bet.n++; if(ok) DB.data.bet.ok++; dbSave(); }
 
-  var COUNT_MODES={single:1,pair:1,table:1};
+  var COUNT_MODES={single:1,pair:1,triple:1,table:1};
   function countAttempts(){
     return DB.data.attempts.filter(function(a){ return COUNT_MODES[a.m]; });
   }
@@ -2069,7 +2080,7 @@
     }
 
     /* פירוט לפי תרגיל */
-    var rows='',keys=[['single','קלף בודד'],['pair','זוגות'],['table','שולחן'],['decks','הערכת חפיסות']],i2;
+    var rows='',keys=[['single','קלף בודד'],['pair','זוגות'],['triple','שלשות'],['table','שולחן'],['decks','הערכת חפיסות']],i2;
     for(i2=0;i2<keys.length;i2++){
       var sub=DB.data.attempts.filter(function(a){ return a.m===keys[i2][0]; });
       if(!sub.length) continue;
