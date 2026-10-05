@@ -24,8 +24,8 @@
   h2{font-size:15px;margin:0 0 10px;font-weight:600}
 
   /* mode tabs */
-  .tabs{display:flex;gap:6px;margin-bottom:14px}
-  .tabs button{flex:1;background:var(--panel);color:var(--muted);border:1px solid var(--line);
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .tabs button{flex:1 1 calc(25% - 6px);background:var(--panel);color:var(--muted);border:1px solid var(--line);
     border-radius:11px;padding:11px 4px;font-size:13.5px;font-family:inherit;cursor:pointer}
   .tabs button[aria-pressed=true]{background:var(--panel-2);color:var(--gold);border-color:var(--gold);font-weight:600}
   .tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -126,6 +126,17 @@
     border:1px solid var(--line);border-radius:9px;padding:11px 2px;font-size:14px;
     font-family:inherit;cursor:pointer;font-variant-numeric:tabular-nums}
   .guessSeg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  /* ---- outs mode ---- */
+  .pkLbl{font-size:12.5px;color:var(--muted);margin:0 0 6px}
+  .pkRow{display:flex;gap:6px;justify-content:center;margin:0 0 14px}
+  .pkRow:last-child{margin-bottom:0}
+  .pkRow .card{width:calc((100% - 24px) / 5);max-width:72px;height:auto;aspect-ratio:60/84;
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+  .pkRow .card.empty{border-radius:7px}
+  .outChips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;direction:ltr;justify-content:flex-end}
+  .outChips span{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px;
+    font-size:13.5px;font-variant-numeric:tabular-nums;color:#E8E3D6}
+  .outChips span.red{color:#F08A84}
   /* ---- table mode ---- */
   .sceneWrap{container-type:inline-size;margin:0 -14px 14px}
   .scene{--su:1px;--su:calc(100cqw / 360);position:relative;width:100%;aspect-ratio:360/440;
@@ -354,6 +365,7 @@
   <button data-mode="triple" aria-pressed="false">שלשות</button>
   <button data-mode="decks" aria-pressed="false">הערכת חפיסות</button>
   <button data-mode="table" aria-pressed="false">שולחן</button>
+  <button data-mode="outs" aria-pressed="false">אאוטים בפוקר</button>
   <button data-mode="prog" aria-pressed="false">התקדמות</button>
 </div>
 
@@ -753,6 +765,63 @@
   </div>
 </div>
 
+<!-- ===== אאוטים בפוקר ===== -->
+<div id="outsMode" class="hidden">
+
+  <div class="panel">
+    <h2>כמה אאוטים יש לך?</h2>
+    <p class="note" style="margin-top:0">אאוט הוא קלף שעוד לא נראה, ואם הוא ייפתח הוא נותן לך <b>רצף או יותר</b> — רצף, צבע, פול האוס, רביעייה. ספור כל קלף פעם אחת בלבד, גם אם הוא משלים גם רצף וגם צבע.</p>
+    <div class="row" style="margin-top:12px">
+      <label>שלב</label>
+      <div class="seg" id="oStreetSeg" style="flex:1">
+        <button data-st="flop" aria-pressed="true">פלופ</button>
+        <button data-st="turn" aria-pressed="false">טרן</button>
+        <button data-st="mix" aria-pressed="false">מעורב</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <p class="pkLbl">הבורד</p>
+    <div class="pkRow" id="oBoard"></div>
+    <p class="pkLbl">היד שלך</p>
+    <div class="pkRow" id="oHole"></div>
+  </div>
+
+  <div class="panel answer" id="oAnswer">
+    <input type="number" id="oGuess" inputmode="numeric" min="0" max="30" placeholder="מספר אאוטים">
+    <div class="actions"><button class="big primary" id="oCheck">בדוק</button></div>
+  </div>
+
+  <div id="oResult" class="hidden"></div>
+  <div class="actions hidden" id="oNextWrap" style="margin-bottom:14px"><button class="big primary" id="oNext">יד הבאה</button></div>
+
+  <div class="panel">
+    <h2>הסבב הזה</h2>
+    <table class="ref">
+      <tr><td>ידיים</td><td id="oTotal">0</td></tr>
+      <tr><td>מדויקים</td><td id="oHits">0</td></tr>
+      <tr><td>רצף נוכחי</td><td id="oStreak">0</td></tr>
+      <tr><td>סטייה ממוצעת</td><td id="oAvg">—</td></tr>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>אאוטים נפוצים</h2>
+    <table class="ref">
+      <tr><td>דרו לצבע</td><td>9</td></tr>
+      <tr><td>רצף פתוח משני הצדדים</td><td>8</td></tr>
+      <tr><td>גאטשוט (רצף פנימי)</td><td>4</td></tr>
+      <tr><td>צבע + רצף פתוח</td><td>15</td></tr>
+      <tr><td>צבע + גאטשוט</td><td>12</td></tr>
+      <tr><td>סט לפול האוס או רביעייה (פלופ)</td><td>7</td></tr>
+      <tr><td>שני זוגות לפול האוס</td><td>4</td></tr>
+    </table>
+    <p class="note">כלל 2 ו־4: בפלופ, אאוטים × 4 ≈ הסיכוי באחוזים להשלים עד הריבר. בטרן, אאוטים × 2.</p>
+  </div>
+
+</div>
+
 <!-- ===== התקדמות ===== -->
 <div id="progMode" class="hidden">
   <div id="progBody"></div>
@@ -820,6 +889,7 @@
       el('deckMode').classList.toggle('hidden',mode!=='decks');
       el('tableMode').classList.toggle('hidden',mode!=='table');
       el('progMode').classList.toggle('hidden',mode!=='prog');
+      el('outsMode').classList.toggle('hidden',mode!=='outs');
       el('statsPanel').classList.toggle('hidden',!counting);
       if(mode==='prog') renderProg();
       el('pairHelp').style.display = (mode==='pair')?'block':'none';
@@ -828,6 +898,7 @@
       el('felt').classList.toggle('triple',mode==='triple');
       resetFelt('מוכן');
       if(mode==='decks') newDeckRound();
+      if(mode==='outs' && !O.hole) oNew();
       if(mode!=='table') tHalt();
     });
   });
@@ -1104,6 +1175,115 @@
     el('dAvg').textContent=(dstats.err/dstats.total).toFixed(2);
     setTimeout(newDeckRound,1600);
   }
+
+  /* ---------- אאוטים בפוקר ---------- */
+  var CAT=['קלף גבוה','זוג','שני זוגות','שלישייה','רצף','צבע','פול האוס','רביעייה','רצף צבע'];
+  function pv(r){ return r==='A'?14:r==='K'?13:r==='Q'?12:r==='J'?11:+r; }
+  function strHigh(vals){
+    var s={},h; vals.forEach(function(v){s[v]=1;}); if(s[14]) s[1]=1;
+    for(h=14;h>=5;h--) if(s[h]&&s[h-1]&&s[h-2]&&s[h-3]&&s[h-4]) return h;
+    return 0;
+  }
+  function pScore(cat,arr){ var sc=cat,i; for(i=0;i<5;i++) sc=sc*15+(arr[i]||0); return {cat:cat,score:sc}; }
+  /* היד הטובה ביותר מתוך 5–7 קלפים */
+  function pEval(cards){
+    var cnt={},suits={},i,v,k,fl=null,g=[],uniq;
+    for(i=0;i<cards.length;i++){
+      v=pv(cards[i].r); cnt[v]=(cnt[v]||0)+1;
+      (suits[cards[i].s]=suits[cards[i].s]||[]).push(v);
+    }
+    for(k in suits) if(suits[k].length>=5) fl=suits[k].sort(function(a,b){return b-a;});
+    if(fl){ var sf=strHigh(fl); if(sf) return pScore(8,[sf]); }
+    for(k in cnt) g.push({c:cnt[k],v:+k});
+    g.sort(function(a,b){ return (b.c-a.c)||(b.v-a.v); });
+    uniq=g.map(function(x){return x.v;}).sort(function(a,b){return b-a;});
+    function rest(ex,n){ return uniq.filter(function(x){return ex.indexOf(x)<0;}).slice(0,n); }
+    if(g[0].c===4) return pScore(7,[g[0].v].concat(rest([g[0].v],1)));
+    if(g[0].c===3 && g[1] && g[1].c>=2) return pScore(6,[g[0].v,g[1].v]);
+    if(fl) return pScore(5,fl.slice(0,5));
+    var st=strHigh(uniq); if(st) return pScore(4,[st]);
+    if(g[0].c===3) return pScore(3,[g[0].v].concat(rest([g[0].v],2)));
+    if(g[0].c===2 && g[1] && g[1].c===2) return pScore(2,[g[0].v,g[1].v].concat(rest([g[0].v,g[1].v],1)));
+    if(g[0].c===2) return pScore(1,[g[0].v].concat(rest([g[0].v],3)));
+    return pScore(0,uniq.slice(0,5));
+  }
+  function pOuts(hole,board){
+    var all=buildShoe(1),seen={},outs=[],i,c,b2,h;
+    hole.concat(board).forEach(function(x){ seen[x.r+x.s]=1; });
+    var unseen=all.filter(function(x){ return !seen[x.r+x.s]; });
+    for(i=0;i<unseen.length;i++){
+      c=unseen[i]; b2=board.concat([c]); h=pEval(hole.concat(b2));
+      if(h.cat<4) continue;
+      if(b2.length===5 && pEval(b2).score>=h.score) continue; /* הבורד משחק לבד — לא אאוט */
+      outs.push({c:c,cat:h.cat});
+    }
+    return {outs:outs,unseen:unseen.length};
+  }
+  var O={hole:null,board:null,res:null,cur:null,street:'flop',done:false};
+  var ost={total:0,hits:0,streak:0,err:0};
+  Array.prototype.forEach.call(el('oStreetSeg').children,function(b){
+    b.addEventListener('click',function(){
+      Array.prototype.forEach.call(el('oStreetSeg').children,function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      O.street=b.dataset.st;
+      oNew();
+    });
+  });
+  function oNew(){
+    var n=(O.street==='turn')?4:(O.street==='flop')?3:(Math.random()<0.5?3:4),tries=0,d,hole,board,cur,res;
+    do{
+      d=buildShoe(1); hole=d.slice(0,2); board=d.slice(2,2+n);
+      cur=pEval(hole.concat(board));
+      res=(cur.cat<4)?pOuts(hole,board):null;
+      tries++;
+    } while((!res || !res.outs.length) && tries<2000);
+    O.hole=hole; O.board=board; O.cur=cur; O.res=res; O.done=false;
+    var bh='',i;
+    for(i=0;i<5;i++) bh+= i<board.length ? cardHTML(board[i]) : '<div class="card empty"></div>';
+    el('oBoard').innerHTML=bh;
+    el('oHole').innerHTML=cardHTML(hole[0])+cardHTML(hole[1]);
+    el('oResult').classList.add('hidden');
+    el('oNextWrap').classList.add('hidden');
+    el('oAnswer').classList.remove('hidden');
+    el('oGuess').value='';
+  }
+  function oCheck(){
+    if(O.done) return;
+    var raw=el('oGuess').value.trim();
+    if(raw===''){ el('oGuess').focus(); return; }
+    var g=parseInt(raw,10), outs=O.res.outs, n=outs.length, ok=(g===n), byCat={}, i, k;
+    O.done=true;
+    ost.total++; ost.err+=Math.abs(g-n);
+    if(ok){ost.hits++;ost.streak++;} else ost.streak=0;
+    for(i=0;i<outs.length;i++) (byCat[outs[i].cat]=byCat[outs[i].cat]||[]).push(outs[i].c);
+    var parts=[],chips='';
+    for(k=8;k>=4;k--) if(byCat[k]){
+      parts.push(CAT[k]+': '+byCat[k].length);
+      byCat[k].forEach(function(c){ chips+='<span class="'+(c.c==='red'?'red':'')+'">'+c.r+c.s+'</span>'; });
+    }
+    var flop=(O.board.length===3), un=O.res.unseen, exact, rule;
+    if(flop){ exact=(1-((un-n)*(un-n-1))/(un*(un-1)))*100; rule=Math.min(100,n*4); }
+    else { exact=n/un*100; rule=n*2; }
+    var r=el('oResult');
+    r.className='panel verdict '+(ok?'ok':'no');
+    r.innerHTML=(ok?'<b>מדויק — '+n+' אאוטים</b>':'<b>יש '+n+' אאוטים, רשמת '+g+'</b>')+
+      '<p>כרגע יש לך '+CAT[O.cur.cat]+'. '+parts.join(' · ')+'.</p>'+
+      '<p>'+(flop?'סיכוי להשלים עד הריבר':'סיכוי להשלים בריבר')+': '+exact.toFixed(1)+'% '+
+      '(כלל ה־'+(flop?'4':'2')+': בערך '+rule+'%).</p>'+
+      '<div class="outChips">'+chips+'</div>';
+    r.classList.remove('hidden');
+    el('oAnswer').classList.add('hidden');
+    el('oNextWrap').classList.remove('hidden');
+    el('oTotal').textContent=ost.total;
+    el('oHits').textContent=ost.hits;
+    el('oStreak').textContent=ost.streak;
+    el('oAvg').textContent=(ost.err/ost.total).toFixed(2);
+    recAttempt({m:'outs',ok:ok,err:Math.abs(g-n)});
+    el('oNext').focus();
+  }
+  el('oCheck').addEventListener('click',oCheck);
+  el('oGuess').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); oCheck(); } });
+  el('oNext').addEventListener('click',function(){ oNew(); el('oGuess').focus(); });
 
   /* ---------- שולחן ---------- */
   var ME=1;
@@ -2080,7 +2260,7 @@
     }
 
     /* פירוט לפי תרגיל */
-    var rows='',keys=[['single','קלף בודד'],['pair','זוגות'],['triple','שלשות'],['table','שולחן'],['decks','הערכת חפיסות']],i2;
+    var rows='',keys=[['single','קלף בודד'],['pair','זוגות'],['triple','שלשות'],['table','שולחן'],['decks','הערכת חפיסות'],['outs','אאוטים בפוקר']],i2;
     for(i2=0;i2<keys.length;i2++){
       var sub=DB.data.attempts.filter(function(a){ return a.m===keys[i2][0]; });
       if(!sub.length) continue;
