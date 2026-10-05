@@ -395,7 +395,7 @@
         <button data-len="20" aria-pressed="true">20</button>
         <button data-len="52" aria-pressed="false">52</button>
         <button data-len="104" aria-pressed="false">104</button>
-        <button data-len="312" aria-pressed="false">6 חפיסות</button>
+        <button data-len="shoe" aria-pressed="false">נעל אמיתית</button>
       </div>
     </div>
     <div class="row">
@@ -928,7 +928,7 @@
       if(running) return;
       Array.prototype.forEach.call(el('lenSeg').children,function(x){x.setAttribute('aria-pressed','false');});
       b.setAttribute('aria-pressed','true');
-      len=+b.dataset.len;
+      len=(b.dataset.len==='shoe')?'shoe':+b.dataset.len;
     });
   });
   el('showLive').addEventListener('change',function(e){
@@ -978,8 +978,14 @@
   /* ---------- מנוע התרגול ---------- */
   function start(){
     /* נעל גדולה מהסבב: אחרת חפיסות שלמות תמיד מסתכמות ב-0 */
-    shoeDecks=Math.max(6,Math.ceil(len/52)+2);
-    deck=buildShoe(shoeDecks).slice(0,len);
+    if(len==='shoe'){
+      /* נעל של 6 חפיסות עד כרטיס החיתוך, 70%–80% חדירה */
+      shoeDecks=6;
+      deck=buildShoe(6).slice(0,Math.floor(312*(0.7+Math.random()*0.1)));
+    } else {
+      shoeDecks=Math.max(6,Math.ceil(len/52)+2);
+      deck=buildShoe(shoeDecks).slice(0,len);
+    }
     startCount = (offsetMode==='rand')
       ? (function(){var pool=[-3,-2,-1,1,2,3];return pool[Math.floor(Math.random()*pool.length)];})()
       : offsetMode;
@@ -1113,6 +1119,10 @@
         '<p>ספירה אמיתית על נעל בגודל הזה: בערך '+tc+'. אם זה הגיע בקלות, הורד עשירית שנייה.</p>'
       : '<b>לא. הספירה היא '+(count>0?'+':'')+count+', רשמת '+(g>0?'+':'')+g+'</b>'+
         '<p>פער של '+Math.abs(count-g)+'. פער קטן ועקבי = קלף בודד חמק. פער גדול = האט וחזור ל-20 קלפים.</p>';
+    if(len==='shoe'){
+      r.innerHTML += '<p>כרטיס החיתוך: חולקו '+deck.length+' מתוך 312 קלפים ('+Math.round(deck.length/312*100)+'%). '+
+        'נשארו כ־'+decksLeft+' חפיסות, אז הספירה האמיתית היא '+(count/decksLeft>0?'+':'')+tc+'.</p>';
+    }
     r.innerHTML += aceLine;
     r.classList.remove('hidden');
     recAttempt({m:mode,ok:ok,sp:speed,len:deck.length,rate:parseFloat(stats.rate)||null});
