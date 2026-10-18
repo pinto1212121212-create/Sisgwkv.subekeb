@@ -865,7 +865,24 @@
     for(i=0;i<n;i++) for(j=0;j<SUITS.length;j++) for(k=0;k<RANKS.length;k++)
       d.push({r:RANKS[k],s:SUITS[j].s,c:SUITS[j].c});
     for(i=d.length-1;i>0;i--){var x=Math.floor(Math.random()*(i+1));var t=d[i];d[i]=d[x];d[x]=t;}
+    noRepeat(d);
     return d;
+  }
+  /* אותו קלף בדיוק לא יוצא פעמיים ברצף — על המסך זה נראה כמו קלף אחד שנשאר */
+  function sameCard(a,b){ return !!a && !!b && a.r===b.r && a.s===b.s; }
+  function noRepeat(d){
+    var i,j,t;
+    for(i=1;i<d.length;i++){
+      if(!sameCard(d[i],d[i-1])) continue;
+      /* מחליפים עם קלף רחוק, בתנאי ששני המקומות נשארים בלי כפילות */
+      for(j=0;j<d.length;j++){
+        if(Math.abs(j-i)<2) continue;
+        if(sameCard(d[j],d[i-1]) || sameCard(d[j],d[i+1])) continue;
+        if(sameCard(d[i],d[j-1]) || sameCard(d[i],d[j+1])) continue;
+        t=d[i];d[i]=d[j];d[j]=t;
+        break;
+      }
+    }
   }
   var el=function(id){return document.getElementById(id);};
 
