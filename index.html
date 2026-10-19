@@ -366,6 +366,7 @@
   <button data-mode="decks" aria-pressed="false">הערכת חפיסות</button>
   <button data-mode="table" aria-pressed="false">שולחן</button>
   <button data-mode="outs" aria-pressed="false">אאוטים בפוקר</button>
+  <button data-mode="sparks" aria-pressed="false">ניצוצות</button>
   <button data-mode="prog" aria-pressed="false">התקדמות</button>
 </div>
 
@@ -822,6 +823,371 @@
 
 </div>
 
+<!-- ===== חפיסת ניצוצות ===== -->
+<div id="sparksMode" class="hidden">
+  <iframe id="sparksFrame" title="חפיסת ניצוצות" style="display:block;width:100%;height:600px;border:0;background:transparent"></iframe>
+  <script type="text/plain" id="sparksSrc"><!doctype html><html data-theme="dark"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>חפיסת ניצוצות</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Assistant:wght@400;600;700&display=swap">
+<style>
+/* Layout: rank bar on top, one play table — card, timer + score, answer list, judge panel */
+:root{
+  --bg:#e9eef2; --table:#dde5ec; --ink:#1b2a3a; --muted:#5b6b7b; --card:#ffffff; --line:#c5d0da;
+  --c-alt:#e2712b; --c-what:#6c4fd1; --c-conn:#14937d; --c-rev:#d13f5c; --c-cons:#2f6fd6; --c-pov:#b88a0d;
+  --good:#14937d; --weak:#b88a0d; --off:#d13f5c; --fire:#e2712b;
+  --display:"Secular One","Assistant",system-ui,sans-serif;
+  --body:"Assistant",system-ui,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121a22; --table:#1a2530; --ink:#e7edf3; --muted:#93a3b3; --card:#202d3a; --line:#33424f;
+  --c-alt:#f08a4b; --c-what:#9a82f0; --c-conn:#35c2a6; --c-rev:#f06a84; --c-cons:#6b9cf0; --c-pov:#e0b434;
+  --good:#35c2a6; --weak:#e0b434; --off:#f06a84; --fire:#f08a4b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121a22; --table:#1a2530; --ink:#e7edf3; --muted:#93a3b3; --card:#202d3a; --line:#33424f;
+  --c-alt:#f08a4b; --c-what:#9a82f0; --c-conn:#35c2a6; --c-rev:#f06a84; --c-cons:#6b9cf0; --c-pov:#e0b434;
+  --good:#35c2a6; --weak:#e0b434; --off:#f06a84; --fire:#f08a4b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 32px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-weight:400;font-size:1.9rem;margin:0;line-height:1.1}
+.rank{background:var(--card);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.rank .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.rank .name{font-family:var(--display);font-size:1.15rem}
+.rank .meta2{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.rank .meta2 b{color:var(--ink)}
+.xpbar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.xpbar span{display:block;height:100%;background:linear-gradient(90deg,var(--fire),var(--c-pov));width:0;transition:width .8s ease}
+.streak{color:var(--fire);font-weight:700}
+.label{font-size:.75rem;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 .9rem var(--body);padding:5px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-inline-end:6px;vertical-align:middle}
+.lv{display:flex;gap:6px}
+.lv .chip{flex:1;text-align:center}
+.tableau{background:var(--table);border-radius:20px;padding:22px 18px;display:flex;flex-direction:column;gap:16px}
+.card{position:relative;background:var(--card);border-radius:14px;min-height:260px;padding:22px 22px 18px;
+  box-shadow:0 1px 0 var(--line),0 10px 24px -14px rgba(20,30,45,.45);display:flex;flex-direction:column;gap:14px;border-top:8px solid var(--cat,var(--ink))}
+.card.deal{animation:deal .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes deal{from{transform:translateY(14px) rotate(-2deg);opacity:.2}to{transform:none;opacity:1}}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cat{font-weight:700;color:var(--cat);font-size:.95rem}
+.fresh{font-size:.75rem;font-weight:700;color:var(--cat);border:1.5px solid var(--cat);border-radius:999px;padding:0 8px;margin-inline-start:6px}
+.pips{display:flex;gap:4px}
+.pips i{width:9px;height:9px;border-radius:2px;background:var(--line)}
+.pips i.on{background:var(--cat)}
+.q{font-family:var(--display);font-size:1.45rem;line-height:1.35;margin:0;flex:1;text-wrap:pretty}
+.goal{font-size:.92rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px}
+.goal b{color:var(--ink)}
+.hint{font-size:.92rem;color:var(--muted)}
+.hint summary{cursor:pointer;color:var(--cat);font-weight:600}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font:700 1rem var(--body);border-radius:12px;padding:12px 16px;cursor:pointer;border:1.5px solid var(--ink);background:var(--ink);color:var(--bg)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.hot{background:var(--cat,var(--fire));border-color:var(--cat,var(--fire));color:#fff}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn:focus-visible,.chip:focus-visible{outline:3px solid var(--cat,var(--c-cons));outline-offset:2px}
+.grow{flex:1}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.box{background:var(--card);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center;min-width:0}
+.time{font-family:var(--display);font-size:2rem;font-variant-numeric:tabular-nums;line-height:1}
+.time.done{color:var(--off)}
+.bar{width:100%;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--cat,var(--ink));width:0;transition:width .9s linear}
+.small{font-size:.8rem;color:var(--muted);text-align:center}
+.box .btn{padding:6px 14px;font-size:.9rem;width:100%}
+.answer{display:flex;flex-direction:column;gap:8px}
+.inrow{display:flex;gap:8px}
+.inrow input{flex:1;min-width:0;font:400 1rem var(--body);color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px}
+.inrow input:focus{outline:none;border-color:var(--cat,var(--ink))}
+.inrow .btn{padding:10px 16px}
+.list{margin:0;padding:0 1.6em 0 0;display:flex;flex-direction:column;gap:6px}
+.list li{background:var(--card);border-radius:10px;padding:8px 12px}
+.list li::marker{color:var(--cat);font-weight:700}
+.li{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.li .txt{display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere}
+.li button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;padding:0 4px}
+.tag{font-size:.8rem;font-weight:700}
+.tag.good{color:var(--good)}.tag.weak{color:var(--weak)}.tag.off{color:var(--off)}
+.list li.off .t{text-decoration:line-through;opacity:.6}
+.judge{background:var(--card);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;border-inline-start:5px solid var(--cat)}
+.judge .big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.judge .pts{font-family:var(--display);font-size:2.4rem;line-height:1;color:var(--cat)}
+.judge .grade{font-family:var(--display);font-size:1.2rem}
+.judge p{margin:0}
+.judge .k{font-weight:700}
+.break{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pop{animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:10px 18px;border-radius:12px;font-weight:700;max-width:calc(100% - 32px);text-align:center;z-index:5}
+.tips{font-size:.95rem;color:var(--muted)}
+.tips p{margin:0 0 6px}
+body{padding:0 0 8px!important;background:transparent!important}
+@media (prefers-reduced-motion:reduce){.card.deal,.pop{animation:none}.xpbar span{transition:none}}
+</style>
+
+<div class="wrap" dir="rtl" lang="he">
+  <h1>חפיסת ניצוצות</h1>
+
+  <section class="rank" aria-label="הדרגה שלך">
+    <div class="top">
+      <span class="name" id="rankName">ניצוץ</span>
+      <span class="meta2"><span class="streak" id="streak"></span> <b id="xp">0</b> נק' · <span id="nextRank"></span></span>
+    </div>
+    <div class="xpbar"><span id="xpFill"></span></div>
+  </section>
+
+  <div>
+    <div class="label">סוג חשיבה</div>
+    <div class="chips" id="cats"></div>
+  </div>
+  <div>
+    <div class="label">רמת קושי</div>
+    <div class="lv" id="levels"></div>
+  </div>
+
+  <section class="tableau">
+    <article class="card" id="card" aria-live="polite">
+      <div class="meta"><span><span class="cat" id="cCat"></span><span class="fresh" id="fresh" hidden>קלף חדש מ־Claude</span></span><span class="pips" id="cPips"></span></div>
+      <p class="q" id="cQ"></p>
+      <details class="hint"><summary>רמז לחשיבה</summary><div id="cHint"></div></details>
+      <div class="goal" id="cGoal"></div>
+    </article>
+
+    <div class="tools">
+      <div class="box">
+        <div class="time" id="time">0:00</div>
+        <div class="bar"><span id="bar"></span></div>
+        <button class="btn" id="timerBtn">התחל טיימר</button>
+      </div>
+      <div class="box">
+        <div class="time" id="ideas">0</div>
+        <div class="small" id="ideaGoal">רעיונות</div>
+        <div class="small">סיום לפני שהזמן נגמר = בונוס ×1.25</div>
+      </div>
+    </div>
+
+    <div class="answer">
+      <form class="inrow" id="ideaForm">
+        <input id="ideaIn" type="text" placeholder="כתוב רעיון ולחץ הוסף" autocomplete="off" aria-label="רעיון חדש">
+        <button class="btn" type="submit">הוסף</button>
+      </form>
+      <ol class="list" id="list"></ol>
+      <button class="btn hot" id="judgeBtn" hidden>סיימתי, תשפוט אותי</button>
+      <div class="judge" id="judge" hidden></div>
+    </div>
+
+    <div class="row">
+      <button class="btn ghost grow" id="draw">שלוף מהחפיסה</button>
+      <button class="btn grow" id="gen" hidden>Claude ימציא קלף</button>
+    </div>
+  </section>
+
+  <div class="tips">
+    <div class="label">איך עובד הניקוד</div>
+    <p>Claude קורא כל רעיון. רעיון מקורי שעונה על השאלה מקבל 10 נקודות, רעיון צפוי מקבל 3, ושטות או חרטוט מורידים 5.</p>
+    <p>עמידה במשימה נותנת בונוס, וסיום לפני שהטיימר נגמר מכפיל ב־1.25. רמה בינונית שווה פי 2 ורמה קשה פי 3.</p>
+    <p>שחק כל יום כדי לשמור על הרצף 🔥.</p>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const CATS={
+  alt:{n:"שימושים חלופיים",c:"--c-alt",h:"פרק את החפץ לתכונות: צורה, משקל, חומר, צבע, קול. כל תכונה פותחת כיוון חדש."},
+  what:{n:"מה אם",c:"--c-what",h:"חשוב על השלכות בשרשרת: מה קורה מחר, בעוד שנה, ואצל מי זה הכי משנה."},
+  conn:{n:"חיבורים רחוקים",c:"--c-conn",h:"כתוב 5 תכונות לכל צד, ואז חפש זוגות מפתיעים ביניהן."},
+  rev:{n:"היפוך הבעיה",c:"--c-rev",h:"קודם תהנה להרוס. אחר כך הפוך כל רעיון רע לכלל טוב."},
+  cons:{n:"אילוצים",c:"--c-cons",h:"האילוץ מכריח אותך לצאת מהדרך הרגילה. דווקא בו נמצא הפתרון המקורי."},
+  pov:{n:"נקודת מבט",c:"--c-pov",h:"היכנס באמת לדמות: מה היא רואה, מה חשוב לה, ממה היא מפחדת."}
+};
+const GOALS={1:{t:120,n:5},2:{t:180,n:8},3:{t:300,n:10}};
+const RANKS=[[0,"ניצוץ"],[150,"גץ"],[400,"להבה"],[900,"מדורה"],[1800,"שביט"],[3500,"כוכב"],[6000,"סופרנובה"]];
+const DECK=[
+["alt",1,"מראה. מצא לה שימושים שאין להם שום קשר להסתכל על עצמך."],["alt",1,"חבל של 10 מטר על אי בודד. מה אפשר לעשות איתו חוץ מלקשור?"],
+["alt",2,"צל של בניין גבוה. אילו שימושים מעשיים אפשר להמציא לו?"],["alt",2,"הד. איך אפשר להשתמש בו כדי לפתור בעיות אמיתיות?"],
+["alt",3,"שקט מוחלט הוא משאב נדיר. מי היה משלם עליו, ואילו מוצרים אפשר לבנות סביבו?"],["alt",3,"מיליון בלונים צהובים. מה הדבר הכי מועיל לאנושות שאפשר לעשות איתם?"],
+["what",1,"מה אם חתולים היו יכולים לדבר, אבל רק כדי להגיד את האמת על הבעלים שלהם?"],["what",1,"מה אם השמש הייתה שוקעת כל יום בשעה אחרת, בלי שום חוקיות?"],
+["what",2,"מה אם בני אדם היו נולדים זקנים ומתים תינוקות?"],["what",2,"מה אם כל אדם היה יכול להגיד 'לא' רק עשר פעמים בכל החיים?"],
+["what",3,"מה אם מחר היה מוכח שאנחנו חיים בסימולציה, אבל שום דבר לא משתנה? איך העולם היה מגיב?"],["what",3,"מה אם רגשות היו מדבקים כמו שפעת? אילו חוקים, מקצועות ומוצרים היו נוצרים?"],
+["conn",1,"מה משותף לאלכימאי ולשף?"],["conn",1,"מה מגדלור יכול ללמד מורה?"],
+["conn",2,"מה שחמט ומושבת נמלים יכולים ללמד זה את זה?"],["conn",2,"איך היה נראה בית משפט שבנוי לפי חוקי המוזיקה?"],
+["conn",3,"קח את הדרך שבה הגוף נלחם בווירוס והשתמש בה כדי לתכנן עיר שמגינה על עצמה משריפות."],["conn",3,"מה משותף לשפה ולנהר, ומה אפשר להמציא מהחיבור הזה?"],
+["rev",1,"איך מעצבים את הכיסא הכי לא נוח בעולם? מה זה מלמד על כיסא טוב?"],["rev",1,"איך הופכים סרט טוב למשעמם בלי לשנות את העלילה?"],
+["rev",2,"תכנן עיר שבה כולם יהיו בודדים. מה זה מלמד על בניית קהילה?"],["rev",2,"איך כותבים חוק שכולם ירצו לעבור עליו? ואיך כותבים חוק שאנשים שומרים מרצון?"],
+["rev",3,"אתה נבל שרוצה שאנשים יפסיקו לחשוב בעצמם בלי שירגישו. מה התוכנית? ואיך מתגוננים מכל צעד?"],["rev",3,"איך הופכים את האדם הכי חכם בעולם לטיפש תוך שנה? מה זה מגלה על מה שעושה אותנו חכמים?"],
+["cons",1,"הסבר מה זה הצבע אדום למישהו שעיוור מלידה."],["cons",1,"המצא ספורט חדש שמשחקים בתוך מעלית."],
+["cons",2,"עצב שפה של 10 מילים בלבד שמספיקה כדי לנהל כפר שלם."],["cons",2,"תכנן בית ספר בלי כיתות, בלי מבחנים ובלי מורים. איך לומדים בו?"],
+["cons",3,"שכנע חייזר לא להשמיד את כדור הארץ, בשלושה משפטים בלבד."],["cons",3,"איך שולחים הודעה לאנשים שיחיו בעוד 10,000 שנה, כשאין שום שפה משותפת?"],
+["pov",1,"איך זבוב רואה מסעדת יוקרה?"],["pov",1,"מה כלב חושב שבני אדם עושים כשהם בוהים בטלפון?"],
+["pov",2,"אתה הדינוזאור האחרון ורואה את המטאוריט מתקרב. מה עובר לך בראש?"],["pov",2,"ספר על המצאת האינטרנט מנקודת המבט של יונת דואר שאיבדה את העבודה."],
+["pov",3,"אתה האלגוריתם של רשת חברתית, ופתאום התחלת להרגיש אשמה. מה אתה עושה?"],["pov",3,"עץ בן 3000 צופה בבני אדם. מה הוא חושב שהם מפספסים?"]
+];
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let sel=new Set(Object.keys(CATS)), level=store.get("sparks_lvl",1), cur=null, last=-1, tmr=null, left=0, started=false;
+let items=[], verdicts=null, judged=false, sample=null, recentQ=[];
+let prof=store.get("sparks_prof",{xp:0,streak:0,lastDay:"",best:0,cards:0});
+
+function today(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
+function yesterday(){const d=new Date(Date.now()-864e5);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
+function rankOf(xp){let r=0;RANKS.forEach((x,i)=>{if(xp>=x[0])r=i});return r}
+function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop");
+  clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2600)}
+function renderRank(){
+  const r=rankOf(prof.xp),nx=RANKS[r+1];$("rankName").textContent=RANKS[r][1];$("xp").textContent=prof.xp;
+  const alive=prof.lastDay===today()||prof.lastDay===yesterday();
+  $("streak").textContent=alive&&prof.streak?`🔥 ${prof.streak} ימים ·`:"";
+  if(nx){$("nextRank").textContent=`עוד ${nx[0]-prof.xp} ל${nx[1]}`;$("xpFill").style.width=((prof.xp-RANKS[r][0])/(nx[0]-RANKS[r][0])*100)+"%"}
+  else{$("nextRank").textContent="הדרגה הגבוהה ביותר";$("xpFill").style.width="100%"}
+}
+function chips(){
+  const c=$("cats");c.innerHTML="";
+  Object.entries(CATS).forEach(([k,v])=>{
+    const b=document.createElement("button");b.className="chip";b.setAttribute("aria-pressed",sel.has(k));
+    b.innerHTML=`<span class="dot" style="background:var(${v.c})"></span>${v.n}`;
+    b.onclick=()=>{if(sel.has(k)&&sel.size>1)sel.delete(k);else sel.add(k);chips()};c.appendChild(b)});
+  const l=$("levels");l.innerHTML="";
+  [["1","קל"],["2","בינוני ×2"],["3","קשה ×3"]].forEach(([n,t])=>{
+    const b=document.createElement("button");b.className="chip";b.textContent=t;b.setAttribute("aria-pressed",String(level)===n);
+    b.onclick=()=>{level=+n;store.set("sparks_lvl",level);chips()};l.appendChild(b)});
+}
+function draw(){
+  const pool=DECK.map((d,i)=>[d,i]).filter(([d])=>sel.has(d[0])&&d[1]===level);
+  let pick;do{pick=pool[Math.floor(Math.random()*pool.length)]}while(pool.length>1&&pick[1]===last);
+  last=pick[1];show(pick[0],false);
+}
+function show(d,fresh){
+  cur=d;const [k,l,q]=d,cat=CATS[k],g=GOALS[l],card=$("card");
+  recentQ.push(q);recentQ=recentQ.slice(-8);
+  document.querySelector(".tableau").style.setProperty("--cat",`var(${cat.c})`);
+  $("cCat").textContent=cat.n;$("fresh").hidden=!fresh;$("cQ").textContent=q;$("cHint").textContent=cat.h;
+  $("cPips").innerHTML=[1,2,3].map(i=>`<i class="${i<=l?"on":""}"></i>`).join("");
+  $("cGoal").innerHTML=`המשימה: <b>${g.n} רעיונות טובים</b> ב־<b>${g.t/60} דקות</b>`;
+  $("ideaGoal").textContent=`מתוך ${g.n} רעיונות`;
+  card.classList.remove("deal");void card.offsetWidth;card.classList.add("deal");
+  card.querySelector("details").open=false;
+  items=[];verdicts=null;judged=false;$("judge").hidden=true;renderList();stopTimer();started=false;left=g.t;paint();
+}
+function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function paint(){const t=GOALS[cur[1]].t;$("time").textContent=fmt(left);$("time").classList.toggle("done",left===0);$("bar").style.width=((t-left)/t*100)+"%"}
+function stopTimer(){clearInterval(tmr);tmr=null;$("timerBtn").textContent=left===0?"נגמר הזמן":"התחל טיימר"}
+function startTimer(){if(tmr||left===0||judged)return;started=true;$("timerBtn").textContent="עצור";
+  tmr=setInterval(()=>{left=Math.max(0,left-1);paint();if(left===0){stopTimer();toast("נגמר הזמן! אפשר עדיין לשפוט, בלי בונוס מהירות")}},1000)}
+$("timerBtn").onclick=()=>{if(tmr)stopTimer();else startTimer()};
+
+const LBL={good:"מקורי ועונה +10",weak:"צפוי מדי +3",off:"לא עונה על השאלה −5"};
+function renderList(){
+  const ol=$("list");ol.innerHTML="";
+  items.forEach((t,i)=>{
+    const li=document.createElement("li"),row=document.createElement("div");row.className="li";
+    const w=document.createElement("div");w.className="txt";const s=document.createElement("span");s.className="t";s.textContent=t;w.append(s);
+    const v=verdicts&&verdicts[i];
+    if(v&&LBL[v.status]){li.classList.toggle("off",v.status==="off");const g=document.createElement("span");g.className="tag "+v.status;
+      g.textContent=LBL[v.status]+(v.note?" · "+v.note:"");w.append(g)}
+    row.append(w);
+    if(!judged){const b=document.createElement("button");b.textContent="✕";b.setAttribute("aria-label","מחק רעיון");b.onclick=()=>{items.splice(i,1);renderList()};row.append(b)}
+    li.append(row);ol.appendChild(li)});
+  $("ideas").textContent=verdicts?verdicts.filter(v=>v&&v.status==="good").length:items.length;
+  $("judgeBtn").hidden=judged||items.length===0;
+  $("ideaIn").disabled=judged;
+}
+$("ideaForm").addEventListener("submit",e=>{e.preventDefault();if(judged)return;const v=$("ideaIn").value.trim();if(!v)return;
+  items.push(v);$("ideaIn").value="";if(!started)startTimer();renderList();$("ideaIn").focus()});
+
+function award(goodN,weakN,offN){
+  const l=cur[1],g=GOALS[l];
+  const base=Math.max(0,goodN*10+weakN*3-offN*5);
+  const goalBonus=goodN>=g.n?25:0;
+  const speed=started&&left>0?1.25:1;
+  const pts=Math.round((base+goalBonus)*l*speed);
+  const before=rankOf(prof.xp);
+  const t=today();if(prof.lastDay!==t){prof.streak=prof.lastDay===yesterday()?prof.streak+1:1;prof.lastDay=t}
+  prof.xp+=pts;prof.cards++;const rec=pts>prof.best;if(rec)prof.best=pts;store.set("sparks_prof",prof);renderRank();
+  const after=rankOf(prof.xp);
+  setTimeout(()=>{if(after>before)toast(`עלית לדרגת ${RANKS[after][1]}!`);else if(rec&&prof.cards>1)toast("שיא אישי חדש!")},400);
+  return {pts,base,goalBonus,speed,l};
+}
+function grade(pct){return pct>=.8?"מבריק":pct>=.6?"חד":pct>=.4?"בכיוון":pct>=.2?"חימום":"נסה שוב"}
+
+$("judgeBtn").onclick=async()=>{
+  const btn=$("judgeBtn"),jd=$("judge");stopTimer();
+  if(!sample){ // no judge available: count-only, honest
+    judged=true;verdicts=items.map(()=>({status:"weak",note:"לא נבדק"}));renderList();
+    const a=award(0,items.length,0);
+    jd.innerHTML="";const p=document.createElement("p");p.textContent=`+${a.pts} נקודות. השופט לא זמין כרגע, אז כל רעיון קיבל ניקוד בסיסי.`;jd.append(p);jd.hidden=false;return}
+  btn.disabled=true;btn.textContent="Claude קורא את הרעיונות...";
+  const prompt=`אתה שופט במשחק חשיבה יצירתית. אתה הוגן אבל קשוח, ולא מתרשם מכמות.
+סוג חשיבה: ${CATS[cur[0]].n}
+רמת קושי: ${cur[1]} מתוך 3
+השאלה: ${cur[2]}
+הרעיונות של השחקן (ממוספרים מ-0):
+${items.map((t,i)=>i+". "+t).join("\n")}
+
+לכל רעיון קבע status:
+"good" אם הוא עונה על השאלה ויש בו מקוריות או מחשבה אמיתית;
+"weak" אם הוא רלוונטי אבל צפוי, בנאלי, או כמעט זהה לרעיון קודם;
+"off" אם הוא ג'יבריש, אותיות אקראיות, בדיחה ריקה, או לא קשור לשאלה.
+note: עד 6 מילים בעברית שמסבירות את ההחלטה.
+החזר JSON בלבד בעברית במבנה:
+{"verdicts":[{"i":0,"status":"good","note":"..."}],"summary":"משפט אחד ישיר על איך הוא חשב","best":0,"missed":"רעיון מקורי אחד שהוא פספס","tip":"טיפ קצר ומעשי לקלף הבא"}`;
+  try{
+    const r=await sample.json(prompt,{modelTier:"quick"});
+    verdicts=items.map((_,i)=>(r.verdicts||[]).find(v=>v.i===i)||{status:"weak",note:""});
+    judged=true;renderList();
+    const c=s=>verdicts.filter(v=>v.status===s).length;
+    const goodN=c("good"),weakN=c("weak"),offN=c("off");
+    const a=award(goodN,weakN,offN);
+    const pct=Math.min(1,goodN/GOALS[cur[1]].n);
+    jd.innerHTML="";
+    const big=document.createElement("div");big.className="big pop";
+    const p1=document.createElement("span");p1.className="pts";p1.textContent="+"+a.pts;
+    const p2=document.createElement("span");p2.className="grade";p2.textContent=grade(pct);big.append(p1,p2);jd.append(big);
+    const br=document.createElement("p");br.className="break";
+    br.textContent=`${goodN} טובים · ${weakN} צפויים · ${offN} נפסלו`+(a.goalBonus?" · בונוס משימה +25":"")+(a.l>1?` · רמה ×${a.l}`:"")+(a.speed>1?" · מהירות ×1.25":"");
+    jd.append(br);
+    const add=(lbl,txt)=>{if(!txt)return;const p=document.createElement("p");if(lbl){const k=document.createElement("span");k.className="k";k.textContent=lbl+" ";p.append(k)}p.append(txt);jd.append(p)};
+    add("",r.summary);
+    if(Number.isInteger(r.best)&&items[r.best]&&verdicts[r.best].status==="good")add("הרעיון הכי טוב שלך:",items[r.best]);
+    add("רעיון שפספסת:",r.missed);add("לקלף הבא:",r.tip);
+    if(offN>0&&offN>=goodN)add("","חרטוט לא משתלם כאן. כל רעיון שנפסל הוריד לך נקודות.");
+    jd.hidden=false;jd.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }catch(e){
+    jd.innerHTML="";const p=document.createElement("p");
+    p.textContent=e&&e.code==="not_granted"?"כדי שאשפוט, צריך לאשר לדף לשאול את Claude.":e&&e.code==="rate_limited"?"יותר מדי בדיקות ברצף. חכה דקה ונסה שוב.":"השיפוט לא עבד הפעם. נסה שוב בעוד רגע.";
+    jd.append(p);jd.hidden=false;
+  }
+  btn.disabled=false;btn.textContent="סיימתי, תשפוט אותי";
+};
+
+$("gen").onclick=async()=>{
+  const btn=$("gen");btn.disabled=true;btn.textContent="ממציא...";
+  const keys=[...sel],k=keys[Math.floor(Math.random()*keys.length)];
+  try{
+    const r=await sample.json(`המצא קלף אתגר אחד חדש למשחק חשיבה יצירתית בעברית.
+סוג חשיבה: ${CATS[k].n}
+רמת קושי: ${level} מתוך 3 (1 = משעשע וקליל, 3 = מורכב ודורש חשיבה עמוקה)
+השאלה צריכה להיות מסקרנת בפני עצמה: עולם דמיוני, פרדוקס, אתגר עיצוב, דמות לא צפויה או חיבור מוזר. היא לא שואלת על החיים האישיים של השחקן, היום שלו, הבית שלו או חפצים שלידו. מפתיעה, קונקרטית, ומאפשרת הרבה תשובות שונות. משפט אחד או שניים, בלי מספר רעיונות נדרש.
+אל תחזור על אף אחת מהשאלות האלה: ${recentQ.join(" | ")}
+החזר JSON בלבד: {"q":"..."}`,{modelTier:"quick",cache:false});
+    if(r&&r.q)show([k,level,r.q],true);
+  }catch(e){toast(e&&e.code==="rate_limited"?"חכה דקה ונסה שוב":"לא הצלחתי להמציא קלף עכשיו")}
+  btn.disabled=false;btn.textContent="Claude ימציא קלף";
+};
+$("draw").onclick=draw;
+
+chips();renderRank();draw();
+window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()}).catch(()=>{});
+<\/script>
+
+</body></html></script>
+</div>
+
 <!-- ===== התקדמות ===== -->
 <div id="progMode" class="hidden">
   <div id="progBody"></div>
@@ -838,7 +1204,7 @@
   </table>
 </div>
 
-<div class="panel">
+<div class="panel" id="refPanel">
   <h2>ערכי Hi-Lo</h2>
   <table class="ref">
     <tr><td>2, 3, 4, 5, 6</td><td style="color:var(--plus)">+1</td></tr>
@@ -907,7 +1273,9 @@
       el('tableMode').classList.toggle('hidden',mode!=='table');
       el('progMode').classList.toggle('hidden',mode!=='prog');
       el('outsMode').classList.toggle('hidden',mode!=='outs');
+      el('sparksMode').classList.toggle('hidden',mode!=='sparks');
       el('statsPanel').classList.toggle('hidden',!counting);
+      el('refPanel').classList.toggle('hidden',mode==='outs'||mode==='sparks');
       if(mode==='prog') renderProg();
       el('pairHelp').style.display = (mode==='pair')?'block':'none';
       el('tripleHelp').style.display = (mode==='triple')?'block':'none';
@@ -916,6 +1284,7 @@
       resetFelt('מוכן');
       if(mode==='decks') newDeckRound();
       if(mode==='outs' && !O.hole) oNew();
+      if(mode==='sparks') sparksLoad();
       if(mode!=='table') tHalt();
     });
   });
@@ -1311,6 +1680,20 @@
   el('oCheck').addEventListener('click',oCheck);
   el('oGuess').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); oCheck(); } });
   el('oNext').addEventListener('click',function(){ oNew(); el('oGuess').focus(); });
+
+  /* ---------- חפיסת ניצוצות: דף עצמאי בתוך iframe, נטען בפעם הראשונה שפותחים את הטאב ---------- */
+  function sparksLoad(){
+    var f=el('sparksFrame');
+    if(f.dataset.loaded) return;
+    f.dataset.loaded='1';
+    f.addEventListener('load',function(){
+      var d=f.contentDocument; if(!d) return;
+      function fit(){ f.style.height=Math.max(400,d.documentElement.scrollHeight)+'px'; }
+      fit();
+      if(window.ResizeObserver) new ResizeObserver(fit).observe(d.body);
+    });
+    f.srcdoc=el('sparksSrc').textContent.replace(/<\\\/script>/g,'</'+'script>');
+  }
 
   /* ---------- שולחן ---------- */
   var ME=1;
