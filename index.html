@@ -66,6 +66,15 @@
   .felt.triple{gap:8px}
   .felt.triple .card{width:calc((100% - 16px) / 3);max-width:104px;height:auto;aspect-ratio:60/84}
   .card.empty{background:var(--panel-2);border:1px dashed var(--line);filter:none}
+  .felt .card.memcard{width:130px;height:186px;max-width:none;aspect-ratio:auto;
+    background:radial-gradient(circle at 50% 35%,#2C2617,#15120B);border:2px solid var(--gold);
+    filter:drop-shadow(0 0 18px rgba(217,178,106,.35));animation:memIn .35s cubic-bezier(.2,1.4,.4,1)}
+  .memcard .mid{gap:2px}
+  .memLbl{font-size:12px;color:var(--gold);font-weight:600;text-align:center;padding:0 8px;line-height:1.3}
+  .memNum{font-size:56px;font-weight:700;color:var(--gold);line-height:1.05;font-variant-numeric:tabular-nums}
+  .memSub{font-size:11.5px;color:var(--muted)}
+  @keyframes memIn{from{transform:scale(.6) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
+  @media (prefers-reduced-motion:reduce){.felt .card.memcard{animation:none}}
   .card .rank{font-size:52px;font-weight:600;line-height:1}
   .card .suit{font-size:34px;line-height:1;margin-top:2px}
   .card .mid{display:flex;flex-direction:column;align-items:center}
@@ -431,6 +440,16 @@
         ספירת אסים במקביל
       </label>
     </div>
+    <div class="row">
+      <label>זיכרון מספר</label>
+      <div class="seg" id="memSeg">
+        <button data-mem="0" aria-pressed="true">כבוי</button>
+        <button data-mem="start" aria-pressed="false">בהתחלה</button>
+        <button data-mem="mid" aria-pressed="false">באמצע</button>
+        <button data-mem="swap" aria-pressed="false">מתחלף</button>
+      </div>
+    </div>
+    <p class="note" id="memNote" style="margin-top:-6px;display:none"></p>
   </div>
 
   <div class="stage">
@@ -458,6 +477,10 @@
     <div id="aceBox" class="hidden">
       <h2 style="margin-top:6px">כמה אסים עברו?</h2>
       <input type="text" id="aceGuess" inputmode="numeric" autocomplete="off" placeholder="0">
+    </div>
+    <div id="memBox" class="hidden">
+      <h2 style="margin-top:6px" id="memQ">מה המספר שהוצג?</h2>
+      <input type="text" id="memGuess" inputmode="numeric" autocomplete="off" placeholder="1–100">
     </div>
     <div class="actions">
       <button class="big primary" id="checkBtn">בדוק</button>
@@ -1201,6 +1224,7 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     <tr><td>מדויקים</td><td id="sHits">0</td></tr>
     <tr><td>רצף נוכחי</td><td id="sStreak">0</td></tr>
     <tr><td>קלפים לשנייה</td><td id="sRate">—</td></tr>
+    <tr><td>זיכרון מספר</td><td id="sMem">—</td></tr>
   </table>
 </div>
 
@@ -1338,6 +1362,46 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
   });
   el('aceSide').addEventListener('change',function(e){aceOn=e.target.checked;});
 
+  /* ---------- זיכרון מספר: עומס נוסף על הזיכרון לאורך כל הסבב ---------- */
+  var memMode=0, memSeq=[], memEvents=[], memHold=0, flashNo=0, mstats={t:0,h:0};
+  var MEM_NOTE={
+    start:'קלף זהב עם מספר מופיע לפני החלוקה. תחזיק אותו בראש עד הסוף, לצד הספירה.',
+    mid:'קלף הזהב קופץ ברגע אקראי באמצע החלוקה. אל תאבד את הספירה כשהוא מופיע.',
+    swap:'מספר בהתחלה, ובאמצע הסבב מספר חדש מחליף אותו — פעם או פעמיים. זוכרים רק את האחרון.'
+  };
+  Array.prototype.forEach.call(el('memSeg').children,function(b){
+    b.addEventListener('click',function(){
+      if(running) return;
+      Array.prototype.forEach.call(el('memSeg').children,function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      memMode=(b.dataset.mem==='0')?0:b.dataset.mem;
+      el('memNote').style.display=memMode?'block':'none';
+      el('memNote').textContent=memMode?MEM_NOTE[memMode]:'';
+    });
+  });
+  function memNew(){
+    var prev=memSeq[memSeq.length-1],n,tries=0;
+    do{ n=1+Math.floor(Math.random()*100); tries++; }
+    while(tries<200 && (memSeq.indexOf(n)>=0 || (prev && Math.abs(n-prev)<10)));
+    memSeq.push(n);
+    return n;
+  }
+  function memCardHTML(n,lbl,sub){
+    return '<div class="card memcard"><div class="mid"><span class="memLbl">'+lbl+'</span>'+
+      '<span class="memNum">'+n+'</span>'+(sub?'<span class="memSub">'+sub+'</span>':'')+'</div></div>';
+  }
+  /* באיזה הבזק יקפוץ כל מספר חדש */
+  function memPlan(){
+    var F=Math.ceil(deck.length/perFlash);
+    function at(a,b){ return Math.max(1,Math.min(F-1,Math.floor(F*(a+Math.random()*(b-a))))); }
+    memSeq=[]; memEvents=[]; memHold=0; flashNo=0;
+    if(memMode==='mid') memEvents=[at(0.25,0.75)];
+    if(memMode==='swap'){
+      memEvents=(F>=12 && Math.random()<0.5) ? [at(0.2,0.45),at(0.6,0.85)] : [at(0.3,0.7)];
+      if(memEvents.length===2 && memEvents[1]<=memEvents[0]) memEvents.pop();
+    }
+  }
+
   var CHATTER=[
     'הדילר: מישהו רוצה משקה?','שחקן: מה, שוב הוא תפס 21?',
     'הדילר: הימורים בבקשה','שחקן ליד: אני מרגיש שהמזל מתהפך',
@@ -1385,15 +1449,24 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     el('mCount').className='v zero';
     el('mProgress').textContent='0';
     el('bar').style.width='0%';
+    memPlan();
+    var steps=[];
+    if(memMode==='start'||memMode==='swap'){
+      var n0=memNew();
+      steps.push({ms:2000,html:memCardHTML(n0,'זכור את המספר','עד סוף הסבב')});
+    }
     if(startCount!==0){
-      el('felt').innerHTML='<div class="card empty"><div class="mid">'+
+      steps.push({ms:1800,html:'<div class="card empty"><div class="mid">'+
         '<span class="hint">מתחילים מ־</span>'+
         '<span style="font-size:40px;font-weight:700;color:var(--gold)">'+fmt(startCount)+'</span>'+
-        '</div></div>';
-      leadIn=setTimeout(beginDeal,1800);
-    } else {
-      beginDeal();
+        '</div></div>'});
     }
+    (function run(){
+      var st=steps.shift();
+      if(!st){ beginDeal(); return; }
+      el('felt').innerHTML=st.html;
+      leadIn=setTimeout(run,st.ms);
+    })();
   }
   function beginDeal(){
     leadIn=null;
@@ -1403,7 +1476,19 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     timer=setInterval(next,speed);
   }
   function next(){
+    if(memHold>0){ memHold--; return; }
     if(idx>=deck.length){finish();return;}
+    if(memEvents.length && flashNo===memEvents[0]){
+      memEvents.shift();
+      var swap=(memSeq.length>0), n=memNew();
+      el('felt').innerHTML = swap
+        ? memCardHTML(n,'מספר חדש! שכח את הקודם','#'+memSeq.length)
+        : memCardHTML(n,'זכור את המספר','עד סוף הסבב');
+      el('felt').style.transform='';
+      memHold=Math.max(0,Math.ceil(1100/speed)-1);
+      return;
+    }
+    flashNo++;
     var html='',i;
     for(i=0;i<perFlash && idx<deck.length;i++){
       var c=deck[idx];
@@ -1447,6 +1532,9 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     el('felt').style.transform='';
     el('aceBox').classList.toggle('hidden',!aceOn);
     el('aceGuess').value='';
+    el('memBox').classList.toggle('hidden',!memMode);
+    el('memQ').textContent=(memSeq.length>1)?'מה היה המספר האחרון שהוצג?':'מה המספר שהוצג?';
+    el('memGuess').value='';
     el('guess').value='';
     el('guessPreview').textContent='נקודה בהתחלה = מינוס. ‎.6 נקרא כ-6−';
     el('guess').focus();
@@ -1490,6 +1578,20 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
         ? '<p>אסים: נכון, '+aces+'.</p>'
         : '<p>אסים: היו '+aces+', רשמת '+ag+'.</p>';
     }
+    var memOk;
+    if(memMode && memSeq.length){
+      var mg=parseGuess(el('memGuess').value);
+      if(mg===null){el('memGuess').focus();return;}
+      var last=memSeq[memSeq.length-1];
+      memOk=(Math.abs(mg)===last);
+      mstats.t++; if(memOk) mstats.h++;
+      var seqTxt=(memSeq.length>1)?' הוצגו: '+memSeq.join(' ← ')+'.':'';
+      aceLine += memOk
+        ? '<p>זיכרון: נכון, '+last+'.'+seqTxt+'</p>'
+        : '<p>זיכרון: המספר היה '+last+', רשמת '+Math.abs(mg)+'.'+seqTxt+
+          (memSeq.indexOf(Math.abs(mg))>=0?' רשמת מספר שכבר הוחלף — לעדכן את הזיכרון בזמן ספירה זה בדיוק החלק הקשה.':'')+'</p>';
+      el('sMem').textContent=mstats.h+' / '+mstats.t;
+    }
     if(startCount!==0){
       aceLine += '<p>התחלת מ־'+fmt(startCount)+', ולכן '+deck.length+' קלפים הוסיפו '+fmt(count-startCount)+'.</p>';
     }
@@ -1509,9 +1611,10 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
       r.innerHTML += '<p>כרטיס החיתוך: חולקו '+deck.length+' מתוך 312 קלפים ('+Math.round(deck.length/312*100)+'%). '+
         'נשארו כ־'+decksLeft+' חפיסות, אז הספירה האמיתית היא '+(count/decksLeft>0?'+':'')+tc+'.</p>';
     }
+    if(ok && memOk) aceLine += '<p><b style="color:var(--gold)">ספירה וזיכרון מושלמים.</b> שני דברים בראש בבת אחת — זה בדיוק מה שהשולחן דורש.</p>';
     r.innerHTML += aceLine;
     r.classList.remove('hidden');
-    recAttempt({m:mode,ok:ok,sp:speed,len:deck.length,rate:parseFloat(stats.rate)||null});
+    recAttempt({m:mode,ok:ok,sp:speed,len:deck.length,rate:parseFloat(stats.rate)||null,mem:memOk});
     el('sTotal').textContent=stats.total;
     el('sHits').textContent=stats.hits;
     el('sStreak').textContent=stats.streak;
@@ -1529,6 +1632,9 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
   });
 
   el('guess').addEventListener('keydown',function(e){
+    if(e.key==='Enter') el('checkBtn').click();
+  });
+  el('memGuess').addEventListener('keydown',function(e){
     if(e.key==='Enter') el('checkBtn').click();
   });
   el('aceGuess').addEventListener('keydown',function(e){
