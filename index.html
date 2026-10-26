@@ -1271,13 +1271,18 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
 
   <!-- סבב 2: תשובה מוחצת -->
   <div id="wRetort" class="hidden">
+    <div class="seg" id="wrSetSeg" style="margin-bottom:10px">
+      <button data-set="day" aria-pressed="true">יומיום</button>
+      <button data-set="hist" aria-pressed="false">היסטוריה</button>
+    </div>
+    <p class="note" id="wrSetNote" style="margin:0 0 12px">חדות ביומיום היא לא להעליב — היא להחזיר את הכדור. משפט קצר, טון רגוע, ואם אפשר חיוך.</p>
     <div class="witCard">
       <div class="witMeta"><span id="wrProg">מצב 1</span><span>נקודות: <b id="wrPts">0</b></span></div>
       <div class="witSit" id="wrSit"></div>
       <div class="witTimer"><i id="wrBar"></i></div>
     </div>
     <div class="panel answer" id="wrAnswer">
-      <textarea id="wrMine" placeholder="מה אתה עונה? יש לך 45 שניות. קצר עדיף."></textarea>
+      <textarea id="wrMine" placeholder="מה היית עונה? יש לך 45 שניות. קצר ורגוע עדיף."></textarea>
       <div class="actions"><button class="big primary" id="wrReveal">חשוף את התשובה המקורית</button></div>
     </div>
     <div class="panel hidden" id="wrOut">
@@ -1306,7 +1311,7 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
   </div>
 
   <div class="panel">
-    <h2>שש טכניקות של שנינות</h2>
+    <h2>שמונה טכניקות של שנינות</h2>
     <table class="ref">
       <tr><td>היפוך — תמשיך את המשפט שלו לכיוון ההפוך</td><td>↺</td></tr>
       <tr><td>אותו מבנה — תחזיר לו את התבנית שלו בדיוק</td><td>⇄</td></tr>
@@ -1314,6 +1319,8 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
       <tr><td>המעטה — שלווה מופגנת מול דרמה</td><td>↓</td></tr>
       <tr><td>משמעות אחרת — עונים על מובן אחר של המילה</td><td>≈</td></tr>
       <tr><td>לצחוק על עצמך — ואז אין לו מה לתקוף</td><td>☺</td></tr>
+      <tr><td>הגזמה — מנפחים את הטענה שלו עד שהיא מגוחכת</td><td>↑</td></tr>
+      <tr><td>התממות — "עזרה" מנומסת שחושפת את ההתנהגות שלו</td><td>?</td></tr>
     </table>
   </div>
 
@@ -2037,6 +2044,41 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     ['על ערש דווי, כומר רוכן אליך ומבקש: "התכחש לשטן!"',
      '"זה לא הזמן לעשות לעצמי אויבים חדשים."','מיוחס לוולטר. כמעט בוודאות אגדה.','משמעות אחרת']
   ];
+  /* יומיום: [מצב, תשובה לדוגמה, למה זה עובד, טכניקה] */
+  var WR_DAY=[
+    ['אתה שואל במכולת אם יש לחם טרי. המוכר: "מה, נראה לך שאני אופה פה?"',
+     '"לא. אבל נראה לי שאתה יודע מתי הגיע המשלוח."','לוקחים את העקיצה שלו ומפנים אותה בחזרה לשאלה המקורית. הוא נשאר בלי במה.','היפוך'],
+    ['אתה שואל כמה עולה משהו. המוכרת, בלי להרים את הראש: "כתוב על המדף."',
+     '"כתוב שם גם \'שירות עם חיוך\'. גם זה רק על המדף?"','אותה תבנית בדיוק — "כתוב" — מוחזרת אליה, בלי להרים את הקול.','אותו מבנה'],
+    ['בקופה המחיר גבוה ממה שכתוב על המדף. הקופאי: "זה מה שהמחשב אומר."',
+     '"אז תגיד למחשב שהמדף אמר משהו אחר — ושאני מאמין למדף."','מתייחסים ל"מחשב" כמו לעוד צד בוויכוח. זה מצחיק, ועדיין לא מוותרים על הכסף.','התממות'],
+    ['מישהו נדחף לפניך בתור לקופה: "סליחה, אני רק עם דבר אחד."',
+     '"מעולה, אז זה ייקח לך רגע לחכות מאחוריי."','משתמשים בדיוק בנימוק שלו — "רק דבר אחד" — כדי להחזיר אותו לסוף התור.','היפוך'],
+    ['המלצר מביא מנה שלא הזמנת: "זה בעצם אותו דבר."',
+     '"אם זה אותו דבר — אז בטח לא אכפת לך להחליף."','מקבלים את הטענה שלו עד הסוף, ומגיעים בדיוק למה שרצית.','היפוך'],
+    ['באוטובוס, מישהו מציץ בלי בושה בטלפון שלך.',
+     '"רוצה שאגדיל לך את הגופן?"','"עזרה" מנומסת שמבהירה בדיוק מה הוא עושה. אין לו מה לענות חוץ מלהסתכל הצידה.','התממות'],
+    ['הטכנאי מגיע באיחור של שלוש שעות ומחייך: "נו, באתי מהר, הא?"',
+     '"מהר מאוד. כמעט הספקתי ללמוד לתקן את זה בעצמי."','מסכימים איתו ומנפחים את ה"מהר" עד שהוא שומע את האמת לבד.','הגזמה'],
+    ['עמית לעבודה מציג בישיבה את הרעיון שלך: "רעיון מעולה שלי, נכון?"',
+     '"מעולה. כמעט כמו כשאני הצעתי אותו אתמול במייל."','לא תוקפים — רק מזכירים עובדה, בחיוך. המייל עושה את העבודה.','המעטה'],
+    ['פעם ראשונה שאתה מגיע לעבודה לפני כולם. עמית: "וואו, מה קרה, נפלת מהמיטה?"',
+     '"לא, רציתי לבדוק אם אתה באמת עובד כשאני לא פה."','מחזירים את הבדיקה אליו. קליל, ידידותי, וסוגר את הנושא.','היפוך'],
+    ['בחתונה, דודה צובטת לך בלחי: "אתה הבא בתור!"',
+     '"דודה, את אומרת את זה כבר עשר שנים. אולי תתחילי להמר על מישהו אחר."','הופכים את השאלה החוזרת שלה לבדיחה עליה — בחום, לא בעלבון.','היפוך'],
+    ['מכר ותיק, כשהוא רואה אותך אחרי שנה: "השמנת, הא?"',
+     '"קצת. ואתה? עדיין עובד על הטקט?"','מודים בקטן — ואז מחזירים את הזרקור להערה עצמה, שהיא הבעיה האמיתית.','לצחוק על עצמך'],
+    ['מישהו שואל בטון מתנשא: "אתה בכלל יודע מה זה?"',
+     '"יודע. ואני גם יודע איך שואלים בנימוס."','אותו פועל — "יודע" — מוחזר אליו, ומלמד אותו משהו בדרך.','אותו מבנה'],
+    ['חבר צוחק עליך: "מה זה, התלבשת בחושך?"',
+     '"כן. ועדיין יצא יותר טוב ממה שאתה עשית באור."','בין חברים: מקבלים את הדימוי שלו ומשתמשים בו נגדו. כולם צוחקים, אף אחד לא נפגע.','היפוך'],
+    ['הרמזור התחלף לירוק לפני שנייה, והנהג מאחוריך כבר צופר.',
+     '"סליחה, לא ידעתי שאתה באמצע מרוץ פורמולה 1."','מנפחים את חוסר הסבלנות שלו עד שהוא נשמע מגוחך — גם לו עצמו.','הגזמה'],
+    ['מישהו חוסם לך את הרכב ואומר "רק שתי דקות". עברו עשרים.',
+     '"ברור. אלה כנראה שתי הדקות הכי ארוכות בהיסטוריה."','הגזמה במקום צעקה. הוא מבין את המסר, ואתה נשאר רגוע.','הגזמה'],
+    ['בוויכוח, מישהו אומר לך: "אין לך מושג על מה אתה מדבר."',
+     '"יכול להיות. אז הנה ההזדמנות שלך להסביר — יש לך שתי דקות."','במקום להתגונן, מעבירים אליו את חובת ההוכחה. עכשיו הוא צריך לעבוד.','היפוך']
+  ];
   var WD_T=25, WR_T=45, WD_N=8;
   function wGet(k,d){ try{ var v=localStorage.getItem(k); return v==null?d:+v; }catch(e){ return d; } }
   function wSet(k,v){ try{ localStorage.setItem(k,String(v)); }catch(e){} }
@@ -2047,7 +2089,7 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
       .replace(/ך/g,'כ').replace(/ם/g,'מ').replace(/ן/g,'נ').replace(/ף/g,'פ').replace(/ץ/g,'צ');
   }
   var W={sub:'double',dq:[],dRound:[],di:0,dPts:0,dLeft:0,dHint:false,dDone:false,dTimer:null,
-         rq:[],rCur:null,rNo:0,rPts:0,rLeft:0,rTimer:null};
+         rq:[],rCur:null,rNo:0,rPts:0,rLeft:0,rTimer:null,rSet:'day',rqDay:[]};
   function wStopAll(){ clearInterval(W.dTimer); clearInterval(W.rTimer); W.dTimer=W.rTimer=null; }
   function wPaintBests(){
     var b=wGet('wit_best_double',0);
@@ -2157,8 +2199,9 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     bar.classList.toggle('low',W.rLeft<=10);
   }
   function wrNext(){
-    if(!W.rq.length) W.rq=wShuffle(WR);
-    W.rCur=W.rq.shift(); W.rNo++;
+    if(W.rSet==='day'){ if(!W.rqDay.length) W.rqDay=wShuffle(WR_DAY); W.rCur=W.rqDay.shift(); }
+    else { if(!W.rq.length) W.rq=wShuffle(WR); W.rCur=W.rq.shift(); }
+    W.rNo++;
     el('wrProg').textContent='מצב '+W.rNo;
     el('wrSit').textContent=W.rCur[0];
     el('wrMine').value=''; el('wrMine').disabled=false;
@@ -2176,7 +2219,7 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     var c=W.rCur, mine=el('wrMine').value.trim();
     el('wrTech').textContent='הטכניקה: '+c[3];
     el('wrQuote').textContent=c[1];
-    el('wrWho').textContent=c[2];
+    el('wrWho').textContent=(W.rSet==='day'?'למה זה עובד: ':'')+c[2];
     var box=el('wrMineBox'); box.innerHTML='';
     if(mine){
       var lab=document.createElement('p'); lab.className='note'; lab.textContent='התשובה שלך:';
@@ -2193,6 +2236,16 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     el('wrOut').classList.remove('hidden');
   }
   el('wrReveal').addEventListener('click',wrReveal);
+  Array.prototype.forEach.call(el('wrSetSeg').children,function(b){
+    b.addEventListener('click',function(){
+      if(W.rSet===b.dataset.set) return;
+      Array.prototype.forEach.call(el('wrSetSeg').children,function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      W.rSet=b.dataset.set;
+      el('wrSetNote').style.display=(W.rSet==='day')?'':'none';
+      W.rNo=0; wrNext();
+    });
+  });
   Array.prototype.forEach.call(el('wrRate').querySelectorAll('button'),function(b){
     b.addEventListener('click',function(){
       var pts=+b.dataset.r;
