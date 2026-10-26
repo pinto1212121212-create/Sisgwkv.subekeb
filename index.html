@@ -146,6 +146,26 @@
   .outChips span{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px;
     font-size:13.5px;font-variant-numeric:tabular-nums;color:#E8E3D6}
   .outChips span.red{color:#F08A84}
+  /* ---- wit mode ---- */
+  .witCard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;margin-bottom:14px;text-align:center}
+  .witMeta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:12px}
+  .witClue{font-size:19px;font-weight:600;line-height:1.45;margin:4px 0}
+  .witAnd{color:var(--gold);font-size:13px;margin:2px 0}
+  .witSit{font-size:17px;line-height:1.6;text-align:right}
+  .witTimer{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:14px}
+  .witTimer i{display:block;height:100%;width:100%;background:var(--gold);transition:width 1s linear}
+  .witTimer i.low{background:var(--minus)}
+  .answer textarea{width:100%;min-height:92px;padding:12px;font-size:16px;line-height:1.5;resize:vertical;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:11px;color:var(--text);font-family:inherit;margin-bottom:10px}
+  .answer textarea:focus{outline:2px solid var(--gold);outline-offset:1px}
+  .witRow{display:flex;gap:8px;flex-wrap:wrap}
+  .witRow button{flex:1 1 30%;padding:11px 6px;border-radius:10px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer}
+  .witRow button:not(.primary){border:1px solid var(--line);background:var(--panel-2);color:var(--text)}
+  .witRow button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .witQuote{font-size:18px;font-weight:700;color:var(--gold);margin:6px 0 8px;line-height:1.5}
+  .witTech{display:inline-block;font-size:12.5px;font-weight:600;color:var(--plus);border:1px solid rgba(91,191,143,.45);
+    border-radius:999px;padding:1px 10px;margin-bottom:6px}
+  .witMine{background:var(--panel-2);border-radius:9px;padding:8px 10px;margin:8px 0;color:var(--text);font-size:14.5px;white-space:pre-wrap}
   /* ---- table mode ---- */
   .sceneWrap{container-type:inline-size;margin:0 -14px 14px}
   .scene{--su:1px;--su:calc(100cqw / 360);position:relative;width:100%;aspect-ratio:360/440;
@@ -376,6 +396,7 @@
   <button data-mode="table" aria-pressed="false">שולחן</button>
   <button data-mode="outs" aria-pressed="false">אאוטים בפוקר</button>
   <button data-mode="sparks" aria-pressed="false">ניצוצות</button>
+  <button data-mode="wit" aria-pressed="false">חד לשון</button>
   <button data-mode="prog" aria-pressed="false">התקדמות</button>
 </div>
 
@@ -1214,6 +1235,90 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
 </body></html></script>
 </div>
 
+<!-- ===== חד לשון ===== -->
+<div id="witMode" class="hidden">
+
+  <div class="panel">
+    <h2>חד לשון</h2>
+    <p class="note" style="margin-top:0">שנינות היא שני שרירים. הראשון: לראות מהר שלמילה יש משמעות נוספת — משם באים משחקי מילים. השני: לקחת את מה שנאמר לך ולהפוך אותו נגד מי שאמר. כל סבב כאן מאמן אחד מהם.</p>
+    <div class="seg" id="wSeg" style="margin-top:12px">
+      <button data-w="double" aria-pressed="true">מילה כפולה</button>
+      <button data-w="retort" aria-pressed="false">תשובה מוחצת</button>
+    </div>
+  </div>
+
+  <!-- סבב 1: מילה כפולה -->
+  <div id="wDouble">
+    <div class="witCard">
+      <div class="witMeta"><span id="wdProg">חידה 1 מתוך 8</span><span>נקודות: <b id="wdPts">0</b></span></div>
+      <div class="witClue" id="wdC1"></div>
+      <div class="witAnd">וגם</div>
+      <div class="witClue" id="wdC2"></div>
+      <p class="note" id="wdHint" style="min-height:18px"></p>
+      <div class="witTimer"><i id="wdBar"></i></div>
+    </div>
+    <div class="panel answer" id="wdAnswer">
+      <input type="text" id="wdGuess" autocomplete="off" placeholder="מילה אחת לשני הרמזים">
+      <div class="witRow">
+        <button class="big primary" id="wdCheck" style="flex:2 1 40%">בדוק</button>
+        <button id="wdHintBtn">רמז</button>
+        <button id="wdSkip">דלג</button>
+      </div>
+    </div>
+    <div id="wdResult" class="hidden"></div>
+    <div class="actions hidden" id="wdNextWrap" style="margin-bottom:14px"><button class="big primary" id="wdNext">הבא</button></div>
+  </div>
+
+  <!-- סבב 2: תשובה מוחצת -->
+  <div id="wRetort" class="hidden">
+    <div class="witCard">
+      <div class="witMeta"><span id="wrProg">מצב 1</span><span>נקודות: <b id="wrPts">0</b></span></div>
+      <div class="witSit" id="wrSit"></div>
+      <div class="witTimer"><i id="wrBar"></i></div>
+    </div>
+    <div class="panel answer" id="wrAnswer">
+      <textarea id="wrMine" placeholder="מה אתה עונה? יש לך 45 שניות. קצר עדיף."></textarea>
+      <div class="actions"><button class="big primary" id="wrReveal">חשוף את התשובה המקורית</button></div>
+    </div>
+    <div class="panel hidden" id="wrOut">
+      <div class="witTech" id="wrTech"></div>
+      <div class="witQuote" id="wrQuote"></div>
+      <p class="note" id="wrWho" style="margin-top:0"></p>
+      <div id="wrMineBox"></div>
+      <div id="wrRate">
+        <p class="note">היה כן — של מי חדה יותר?</p>
+        <div class="witRow">
+          <button data-r="5">שלי חדה יותר</button>
+          <button data-r="3">שקולות</button>
+          <button data-r="1">המקורית ניצחה</button>
+        </div>
+      </div>
+      <div class="actions hidden" id="wrNextWrap" style="margin-top:12px"><button class="big primary" id="wrNext">המצב הבא</button></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>השיאים שלך</h2>
+    <table class="ref">
+      <tr><td>שיא בסבב מילה כפולה</td><td id="wBestD">—</td></tr>
+      <tr><td>נקודות בתשובה מוחצת, סך הכול</td><td id="wTotR">0</td></tr>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>שש טכניקות של שנינות</h2>
+    <table class="ref">
+      <tr><td>היפוך — תמשיך את המשפט שלו לכיוון ההפוך</td><td>↺</td></tr>
+      <tr><td>אותו מבנה — תחזיר לו את התבנית שלו בדיוק</td><td>⇄</td></tr>
+      <tr><td>קיצור — מילה אחת שמבודדת את החולשה</td><td>·</td></tr>
+      <tr><td>המעטה — שלווה מופגנת מול דרמה</td><td>↓</td></tr>
+      <tr><td>משמעות אחרת — עונים על מובן אחר של המילה</td><td>≈</td></tr>
+      <tr><td>לצחוק על עצמך — ואז אין לו מה לתקוף</td><td>☺</td></tr>
+    </table>
+  </div>
+
+</div>
+
 <!-- ===== התקדמות ===== -->
 <div id="progMode" class="hidden">
   <div id="progBody"></div>
@@ -1301,8 +1406,9 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
       el('progMode').classList.toggle('hidden',mode!=='prog');
       el('outsMode').classList.toggle('hidden',mode!=='outs');
       el('sparksMode').classList.toggle('hidden',mode!=='sparks');
+      el('witMode').classList.toggle('hidden',mode!=='wit');
       el('statsPanel').classList.toggle('hidden',!counting);
-      el('refPanel').classList.toggle('hidden',mode==='outs'||mode==='sparks');
+      el('refPanel').classList.toggle('hidden',mode==='outs'||mode==='sparks'||mode==='wit');
       if(mode==='prog') renderProg();
       el('pairHelp').style.display = (mode==='pair')?'block':'none';
       el('tripleHelp').style.display = (mode==='triple')?'block':'none';
@@ -1312,6 +1418,7 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
       if(mode==='decks') newDeckRound();
       if(mode==='outs' && !O.hole) oNew();
       if(mode==='sparks') sparksLoad();
+      if(mode==='wit') wEnter(); else wStopAll();
       if(mode!=='table') tHalt();
     });
   });
@@ -1838,6 +1945,236 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     });
     f.srcdoc=el('sparksSrc').textContent.replace(/<\\\/script>/g,'</'+'script>');
   }
+
+  /* ---------- חד לשון ---------- */
+  /* מילה אחת, שתי משמעויות */
+  var WD=[
+    ['עין','איבר הראייה','מקור מים בטבע, כמו ב־___ גדי'],
+    ['גל','מה שמכה בחוף','ערימה של אבנים'],
+    ['כף','אוכלים בה מרק','החלק הפנימי של היד'],
+    ['מטה','המקל שמשה הכה בסלע','המפקדה של הצבא'],
+    ['ספר','קוראים בו','אזור גבול — עיירת ___'],
+    ['עונה','חורף, אביב, קיץ או סתיו','מי שמשיב לשאלה'],
+    ['קרן','בולטת מראש של איל','כסף שמנהלים להשקעות'],
+    ['ברך','המפרק באמצע הרגל','אמר תודה לאל על האוכל'],
+    ['שער','הכדור נכנס לתוכו','כמה עולה הדולר היום'],
+    ['רגל','הולכים עליה','שלוש ___ — החגים שבהם עלו לירושלים'],
+    ['מפה','מראה לך את הדרך','פורסים אותה על שולחן החג'],
+    ['ענף','יוצא מגזע העץ','תחום בספורט, כמו טניס או שחייה'],
+    ['כנף','ציפור עפה בעזרתה','אגף בבניין או בבית חולים'],
+    ['לשון','טועמים בעזרתה','עברית, ערבית או אנגלית'],
+    ['פה','פותחים אותו כדי לדבר','כאן'],
+    ['אף','מריחים בעזרתו','גם — "___ על פי כן"'],
+    ['חם','ההפך מקר','אבא של הבעל'],
+    ['פרק','חלק בספר','המפרק שמחבר את כף היד לזרוע'],
+    ['צלע','עצם בבית החזה','אחד משלושת הקווים של משולש'],
+    ['מלח','מפזרים אותו על האוכל','עובד על אונייה'],
+    ['ציר','מרק מבושל של עוף','הדלת מסתובבת עליו'],
+    ['גרעין','נמצא בתוך האבטיח','המרכז של האטום'],
+    ['תא','יחידת החיים הקטנה ביותר','חדר צר בבית סוהר'],
+    ['מנה','מה שמגיע לשולחן במסעדה','התוצאה של פעולת חילוק'],
+    ['שורש','החלק של הצמח שבתוך האדמה','שלוש האותיות שמהן נבנית מילה בעברית'],
+    ['מחשב','מכשיר עם מקלדת ומסך','עושה חשבון בראש'],
+    ['שעון','מראה מה השעה','נשען על הקיר'],
+    ['ראש','החלק העליון של הגוף','מי שעומד בראש העירייה'],
+    ['סל','מכניסים לתוכו את הקניות','שתי נקודות בכדורסל'],
+    ['חלב','שופכים אותו על קורנפלקס','שומן של בהמה, שאסור באכילה']
+  ];
+  /* מצבים קלאסיים — ותשובות שנכנסו להיסטוריה */
+  var WR=[
+    ['חברת פרלמנט שלא סובלת אותך אומרת: "אילו הייתי אשתך, הייתי שמה רעל בקפה שלך."',
+     '"גברתי, אילו הייתי בעלך — הייתי שותה אותו."','מיוחס לווינסטון צ׳רצ׳יל ולליידי אסטור. כנראה אגדה — אבל אגדה טובה.','היפוך'],
+    ['מחזאי מפורסם שולח לך מכתב: "מצורפים שני כרטיסים לבכורה של ההצגה שלי. הבא חבר — אם יש לך."',
+     '"לא אוכל להגיע לבכורה. אבוא להצגה השנייה — אם תהיה."','מיוחס לצ׳רצ׳יל ולג׳ורג׳ ברנרד שו.','אותו מבנה'],
+    ['עיתון פרסם בטעות שמתת. עיתונאי מתקשר ומבקש את תגובתך.',
+     '"הידיעות על מותי היו מוגזמות במקצת."','מיוחס למארק טוויין. הניסוח המקורי היה מעט שונה, אבל זה מה שנשאר בזיכרון.','המעטה'],
+    ['בפתח דלת, יריבה ותיקה מחייכת אליך, אומרת "גיל לפני יופי" ומסמנת לך לעבור ראשונה.',
+     '"פנינים לפני חזירים." — ונכנסת.','מיוחס לסופרת דורותי פרקר.','אותו מבנה'],
+    ['במכס, הפקיד שואל אותך: "יש לך משהו להצהיר?"',
+     '"שום דבר — מלבד הגאונות שלי."','מיוחס לאוסקר ויילד, כשהגיע לאמריקה.','משמעות אחרת'],
+    ['מועדון יוקרתי ובלעדי מזמין אותך, בכבוד גדול, להצטרף כחבר.',
+     '"לא הייתי רוצה להיות חבר במועדון שמוכן לקבל אנשים כמוני."','מיוחס לקומיקאי גראוצ׳ו מרקס.','לצחוק על עצמך'],
+    ['בוויכוח מול קהל, היריב שלך מאשים אותך שאתה "דו־פרצופי".',
+     '"אני שואל את הקהל: אילו היו לי שני פרצופים — הייתי מסתובב עם הפרצוף הזה?"','מיוחס לאברהם לינקולן.','לצחוק על עצמך'],
+    ['אתה משתזף. השליט החזק בעולם נעמד מעליך ואומר: "בקש ממני כל מה שתרצה."',
+     '"זוז קצת הצידה. אתה מסתיר לי את השמש."','דיוגנס לאלכסנדר מוקדון, לפי פלוטרכוס.','משמעות אחרת'],
+    ['מלך כובש שולח לעירך מכתב: "אם אכנס לארצכם, אחריב את עירכם עד היסוד." מותר לך לענות במילה אחת.',
+     '"אם."','הספרטנים לפיליפוס השני, אביו של אלכסנדר. מכאן המילה "לקוני" — כמו תושבי לקוניה.','קיצור'],
+    ['בארוחה חגיגית, מישהי אומרת לך: "התערבתי עם חבר שאצליח להוציא ממך יותר משתי מילים."',
+     '"הפסדת."','מיוחס לנשיא האמריקאי קלווין קולידג׳, שנודע כשתקן. באנגלית: You lose — בדיוק שתי מילים.','קיצור'],
+    ['מבקשים ממך להסביר מול קהל את ההבדל בין "מזל רע" ל"אסון". היריב הפוליטי שלך יושב בשורה הראשונה.',
+     '"אם הוא ייפול לנהר — זה מזל רע. אם מישהו ישלוף אותו משם — זה אסון."','מיוחס לבנג׳מין דיזרעאלי, על יריבו גלדסטון.','היפוך'],
+    ['על ערש דווי, כומר רוכן אליך ומבקש: "התכחש לשטן!"',
+     '"זה לא הזמן לעשות לעצמי אויבים חדשים."','מיוחס לוולטר. כמעט בוודאות אגדה.','משמעות אחרת']
+  ];
+  var WD_T=25, WR_T=45, WD_N=8;
+  function wGet(k,d){ try{ var v=localStorage.getItem(k); return v==null?d:+v; }catch(e){ return d; } }
+  function wSet(k,v){ try{ localStorage.setItem(k,String(v)); }catch(e){} }
+  function wShuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)),t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+  /* בלי ניקוד, רווחים וסימנים; אותיות סופיות כרגילות */
+  function wNorm(t){
+    return String(t||'').replace(/[֑-ׇ]/g,'').replace(/[^א-ת]/g,'')
+      .replace(/ך/g,'כ').replace(/ם/g,'מ').replace(/ן/g,'נ').replace(/ף/g,'פ').replace(/ץ/g,'צ');
+  }
+  var W={sub:'double',dq:[],dRound:[],di:0,dPts:0,dLeft:0,dHint:false,dDone:false,dTimer:null,
+         rq:[],rCur:null,rNo:0,rPts:0,rLeft:0,rTimer:null};
+  function wStopAll(){ clearInterval(W.dTimer); clearInterval(W.rTimer); W.dTimer=W.rTimer=null; }
+  function wPaintBests(){
+    var b=wGet('wit_best_double',0);
+    el('wBestD').textContent=b?b:'—';
+    el('wTotR').textContent=wGet('wit_retort_total',0);
+  }
+  function wEnter(){
+    wPaintBests();
+    if(W.sub==='double'){ if(!W.dRound.length) wdNewRound(); else if(!W.dDone) wdTick(); }
+    else { if(!W.rCur) wrNext(); }
+  }
+  Array.prototype.forEach.call(el('wSeg').children,function(b){
+    b.addEventListener('click',function(){
+      Array.prototype.forEach.call(el('wSeg').children,function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      W.sub=b.dataset.w; wStopAll();
+      el('wDouble').classList.toggle('hidden',W.sub!=='double');
+      el('wRetort').classList.toggle('hidden',W.sub!=='retort');
+      wEnter();
+    });
+  });
+
+  /* --- סבב מילה כפולה --- */
+  function wdNewRound(){
+    if(W.dq.length<WD_N) W.dq=W.dq.concat(wShuffle(WD));
+    W.dRound=W.dq.splice(0,WD_N); W.di=0; W.dPts=0;
+    el('wdPts').textContent='0';
+    wdShow();
+  }
+  function wdShow(){
+    var q=W.dRound[W.di];
+    W.dLeft=WD_T; W.dHint=false; W.dDone=false;
+    el('wdProg').textContent='חידה '+(W.di+1)+' מתוך '+WD_N;
+    el('wdC1').textContent=q[1]; el('wdC2').textContent=q[2];
+    el('wdHint').textContent='';
+    el('wdGuess').value=''; el('wdGuess').disabled=false;
+    el('wdAnswer').classList.remove('hidden');
+    el('wdResult').classList.add('hidden');
+    el('wdNextWrap').classList.add('hidden');
+    wdTick();
+  }
+  function wdPaintBar(){
+    var bar=el('wdBar'); bar.style.width=(W.dLeft/WD_T*100)+'%';
+    bar.classList.toggle('low',W.dLeft<=7);
+  }
+  function wdTick(){
+    clearInterval(W.dTimer); wdPaintBar();
+    W.dTimer=setInterval(function(){
+      W.dLeft--; wdPaintBar();
+      if(W.dLeft<=0) wdEnd(false,true);
+    },1000);
+  }
+  function wdEnd(ok,timeout){
+    if(W.dDone) return;
+    W.dDone=true; clearInterval(W.dTimer); W.dTimer=null;
+    var q=W.dRound[W.di], pts=0;
+    if(ok){ pts=10+Math.ceil(W.dLeft/5); if(W.dHint) pts=Math.ceil(pts/2); W.dPts+=pts; }
+    el('wdPts').textContent=W.dPts;
+    var r=el('wdResult');
+    r.className='panel verdict '+(ok?'ok':'no');
+    r.innerHTML='';
+    var b=document.createElement('b');
+    b.textContent= ok ? ('"'+q[0]+'" — נכון, +'+pts) : (timeout?'נגמר הזמן. ':'')+'התשובה: "'+q[0]+'"';
+    var pp=document.createElement('p');
+    pp.textContent=q[0]+' = '+q[1].replace('___',q[0])+' · וגם · '+q[2].replace('___',q[0]);
+    r.appendChild(b); r.appendChild(pp);
+    if(W.di===WD_N-1){
+      var best=wGet('wit_best_double',0), fin=document.createElement('p');
+      fin.textContent='סוף הסבב: '+W.dPts+' נקודות.'+(W.dPts>best?' שיא חדש!':' השיא שלך: '+best+'.');
+      if(W.dPts>best) wSet('wit_best_double',W.dPts);
+      r.appendChild(fin); wPaintBests();
+      el('wdNext').textContent='סבב חדש';
+    } else el('wdNext').textContent='הבא';
+    r.classList.remove('hidden');
+    el('wdAnswer').classList.add('hidden');
+    el('wdNextWrap').classList.remove('hidden');
+    recAttempt({m:'wit',ok:ok});
+    el('wdNext').focus();
+  }
+  function wdCheck(){
+    if(W.dDone) return;
+    var g=wNorm(el('wdGuess').value), a=wNorm(W.dRound[W.di][0]);
+    if(!g){ el('wdGuess').focus(); return; }
+    /* כתיב מלא או חסר: "בירך" כמו "ברך", "שיער" כמו "שער" */
+    function bare(x){ return x.replace(/[יו]/g,''); }
+    if(g===a || (g.charAt(0)==='ה' && g.slice(1)===a) || bare(g)===bare(a)) { wdEnd(true,false); return; }
+    el('wdHint').textContent='לא "'+el('wdGuess').value.trim()+'". נסה שוב.';
+    el('wdGuess').select();
+  }
+  el('wdCheck').addEventListener('click',wdCheck);
+  el('wdGuess').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); wdCheck(); } });
+  el('wdHintBtn').addEventListener('click',function(){
+    if(W.dDone||W.dHint) return;
+    var a=W.dRound[W.di][0]; W.dHint=true;
+    el('wdHint').textContent='מתחילה ב־'+a.charAt(0)+', '+a.length+' אותיות. רמז = חצי מהנקודות.';
+    el('wdGuess').focus();
+  });
+  el('wdSkip').addEventListener('click',function(){ wdEnd(false,false); });
+  el('wdNext').addEventListener('click',function(){
+    if(W.di===WD_N-1) wdNewRound(); else { W.di++; wdShow(); }
+    el('wdGuess').focus();
+  });
+
+  /* --- סבב תשובה מוחצת --- */
+  function wrPaintBar(){
+    var bar=el('wrBar'); bar.style.width=(W.rLeft/WR_T*100)+'%';
+    bar.classList.toggle('low',W.rLeft<=10);
+  }
+  function wrNext(){
+    if(!W.rq.length) W.rq=wShuffle(WR);
+    W.rCur=W.rq.shift(); W.rNo++;
+    el('wrProg').textContent='מצב '+W.rNo;
+    el('wrSit').textContent=W.rCur[0];
+    el('wrMine').value=''; el('wrMine').disabled=false;
+    el('wrAnswer').classList.remove('hidden');
+    el('wrOut').classList.add('hidden');
+    W.rLeft=WR_T; wrPaintBar();
+    clearInterval(W.rTimer);
+    W.rTimer=setInterval(function(){
+      W.rLeft--; wrPaintBar();
+      if(W.rLeft<=0){ clearInterval(W.rTimer); W.rTimer=null; wrReveal(); }
+    },1000);
+  }
+  function wrReveal(){
+    clearInterval(W.rTimer); W.rTimer=null;
+    var c=W.rCur, mine=el('wrMine').value.trim();
+    el('wrTech').textContent='הטכניקה: '+c[3];
+    el('wrQuote').textContent=c[1];
+    el('wrWho').textContent=c[2];
+    var box=el('wrMineBox'); box.innerHTML='';
+    if(mine){
+      var lab=document.createElement('p'); lab.className='note'; lab.textContent='התשובה שלך:';
+      var m=document.createElement('div'); m.className='witMine'; m.textContent=mine;
+      box.appendChild(lab); box.appendChild(m);
+    } else {
+      var n=document.createElement('p'); n.className='note';
+      n.textContent='לא כתבת תשובה הפעם. בפעם הבאה — גם תשובה גרועה עדיפה על שתיקה. ככה מתאמנים.';
+      box.appendChild(n);
+    }
+    el('wrRate').classList.toggle('hidden',!mine);
+    el('wrNextWrap').classList.toggle('hidden',!!mine);
+    el('wrAnswer').classList.add('hidden');
+    el('wrOut').classList.remove('hidden');
+  }
+  el('wrReveal').addEventListener('click',wrReveal);
+  Array.prototype.forEach.call(el('wrRate').querySelectorAll('button'),function(b){
+    b.addEventListener('click',function(){
+      var pts=+b.dataset.r;
+      W.rPts+=pts; el('wrPts').textContent=W.rPts;
+      wSet('wit_retort_total',wGet('wit_retort_total',0)+pts); wPaintBests();
+      recAttempt({m:'witR',ok:pts>=3});
+      el('wrRate').classList.add('hidden');
+      el('wrNextWrap').classList.remove('hidden');
+      el('wrNext').focus();
+    });
+  });
+  el('wrNext').addEventListener('click',function(){ wrNext(); el('wrMine').focus(); });
 
   /* ---------- שולחן ---------- */
   var ME=1;
@@ -2814,7 +3151,7 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     }
 
     /* פירוט לפי תרגיל */
-    var rows='',keys=[['single','קלף בודד'],['pair','זוגות'],['triple','שלשות'],['table','שולחן'],['decks','הערכת חפיסות'],['outs','אאוטים בפוקר']],i2;
+    var rows='',keys=[['single','קלף בודד'],['pair','זוגות'],['triple','שלשות'],['table','שולחן'],['decks','הערכת חפיסות'],['outs','אאוטים בפוקר'],['wit','חד לשון: מילה כפולה'],['witR','חד לשון: תשובה מוחצת']],i2;
     for(i2=0;i2<keys.length;i2++){
       var sub=DB.data.attempts.filter(function(a){ return a.m===keys[i2][0]; });
       if(!sub.length) continue;
