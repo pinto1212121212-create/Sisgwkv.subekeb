@@ -1272,7 +1272,8 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
   <!-- סבב 2: תשובה מוחצת -->
   <div id="wRetort" class="hidden">
     <div class="seg" id="wrSetSeg" style="margin-bottom:10px">
-      <button data-set="day" aria-pressed="true">יומיום</button>
+      <button data-set="light" aria-pressed="true">קליל</button>
+      <button data-set="day" aria-pressed="false">יומיום</button>
       <button data-set="hist" aria-pressed="false">היסטוריה</button>
     </div>
     <p class="note" id="wrSetNote" style="margin:0 0 12px">חדות ביומיום היא לא להעליב — היא להחזיר את הכדור. משפט קצר, טון רגוע, ואם אפשר חיוך.</p>
@@ -2079,6 +2080,33 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     ['בוויכוח, מישהו אומר לך: "אין לך מושג על מה אתה מדבר."',
      '"יכול להיות. אז הנה ההזדמנות שלך להסביר — יש לך שתי דקות."','במקום להתגונן, מעבירים אליו את חובת ההוכחה. עכשיו הוא צריך לעבוד.','היפוך']
   ];
+  /* קליל: רגעים קטנים, תשובה של משפט אחד */
+  var WR_LIGHT=[
+    ['במכולת אתה מבקש עוד שקית. המוכר: "עוד שקית? אתה אוסף אותן?"',
+     '"רק את אלה שאני משלם עליהן."','מזכיר בעדינות שאתה לקוח, בלי להתווכח.','משמעות אחרת'],
+    ['אתה משלם בשטר גדול. הקופאית: "אין לך יותר קטן?"',
+     '"היה לי — ואז קניתי פה בפעם שעברה."','בדיחה קטנה על המחירים במקום להתנצל.','לצחוק על עצמך'],
+    ['אתה מחפש את הארנק בקופה. מישהו מאחוריך: "נו, מתי?"',
+     '"עוד שנייה. רוצה בינתיים להחזיק לי את הסלסלה?"','מזמינים אותו "לעזור" — והלחץ שלו הופך לבדיחה.','התממות'],
+    ['בעבודה: "אתה שוב עם קפה?"',
+     '"זה לא קפה, זה ציוד עבודה."','מגדירים מחדש את הדבר שצוחקים עליו.','משמעות אחרת'],
+    ['"מה, רק עכשיו הגעת?"',
+     '"כן, רציתי שיהיה לכם זמן להתגעגע."','הופכים את הביקורת למחמאה לעצמך, בקריצה.','היפוך'],
+    ['"אתה תמיד כזה שקט?"',
+     '"לא, רק כשאני מקשיב."','הופכים "שקט" לתכונה טובה — ומרמזים מי מדבר יותר מדי.','היפוך'],
+    ['בבית: "שוב אתה בטלפון?"',
+     '"לא, הטלפון שוב עליי."','משחק מילים קטן שמפרק את הנזיפה.','היפוך'],
+    ['"איך אתה אוכל כל כך הרבה?"',
+     '"באימונים."','תשובה של מילה אחת, כאילו זה ספורט מקצועי.','קיצור'],
+    ['"אתה אף פעם לא עונה לטלפון!"',
+     '"דווקא עניתי. פשוט לא כשהתקשרת."','מתקנים את ה"אף פעם" — בחיוך.','משמעות אחרת'],
+    ['ברחוב מישהו נתקע בך: "תסתכל לאן אתה הולך!"',
+     '"הסתכלתי. ראיתי אותך מגיע."','מחזירים אליו את האחריות בלי להרים את הקול.','היפוך'],
+    ['בחניון, נהג צועק עליך: "זה המקום שלי!"',
+     '"בטח. אני רק שומר לך עליו."','מסכימים — ולא זזים. ההומור מוריד את הטמפרטורה.','התממות'],
+    ['אתה עומד בתור, ומישהו שואל: "סליחה, אתה בתור?"',
+     '"לא, אני פסל. אבל מותר לעמוד מאחוריי."','שאלה מיותרת מקבלת תשובה מגוחכת — ועדיין עונה לו.','הגזמה']
+  ];
   var WD_T=25, WR_T=45, WD_N=8;
   function wGet(k,d){ try{ var v=localStorage.getItem(k); return v==null?d:+v; }catch(e){ return d; } }
   function wSet(k,v){ try{ localStorage.setItem(k,String(v)); }catch(e){} }
@@ -2089,7 +2117,7 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
       .replace(/ך/g,'כ').replace(/ם/g,'מ').replace(/ן/g,'נ').replace(/ף/g,'פ').replace(/ץ/g,'צ');
   }
   var W={sub:'double',dq:[],dRound:[],di:0,dPts:0,dLeft:0,dHint:false,dDone:false,dTimer:null,
-         rq:[],rCur:null,rNo:0,rPts:0,rLeft:0,rTimer:null,rSet:'day',rqDay:[]};
+         rq:[],rCur:null,rNo:0,rPts:0,rLeft:0,rTimer:null,rSet:'light',rqDay:[],rqLight:[]};
   function wStopAll(){ clearInterval(W.dTimer); clearInterval(W.rTimer); W.dTimer=W.rTimer=null; }
   function wPaintBests(){
     var b=wGet('wit_best_double',0);
@@ -2199,7 +2227,8 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     bar.classList.toggle('low',W.rLeft<=10);
   }
   function wrNext(){
-    if(W.rSet==='day'){ if(!W.rqDay.length) W.rqDay=wShuffle(WR_DAY); W.rCur=W.rqDay.shift(); }
+    if(W.rSet==='light'){ if(!W.rqLight.length) W.rqLight=wShuffle(WR_LIGHT); W.rCur=W.rqLight.shift(); }
+    else if(W.rSet==='day'){ if(!W.rqDay.length) W.rqDay=wShuffle(WR_DAY); W.rCur=W.rqDay.shift(); }
     else { if(!W.rq.length) W.rq=wShuffle(WR); W.rCur=W.rq.shift(); }
     W.rNo++;
     el('wrProg').textContent='מצב '+W.rNo;
@@ -2219,7 +2248,7 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     var c=W.rCur, mine=el('wrMine').value.trim();
     el('wrTech').textContent='הטכניקה: '+c[3];
     el('wrQuote').textContent=c[1];
-    el('wrWho').textContent=(W.rSet==='day'?'למה זה עובד: ':'')+c[2];
+    el('wrWho').textContent=(W.rSet!=='hist'?'למה זה עובד: ':'')+c[2];
     var box=el('wrMineBox'); box.innerHTML='';
     if(mine){
       var lab=document.createElement('p'); lab.className='note'; lab.textContent='התשובה שלך:';
@@ -2242,7 +2271,7 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
       Array.prototype.forEach.call(el('wrSetSeg').children,function(x){x.setAttribute('aria-pressed','false');});
       b.setAttribute('aria-pressed','true');
       W.rSet=b.dataset.set;
-      el('wrSetNote').style.display=(W.rSet==='day')?'':'none';
+      el('wrSetNote').style.display=(W.rSet!=='hist')?'':'none';
       W.rNo=0; wrNext();
     });
   });
