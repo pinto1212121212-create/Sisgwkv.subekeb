@@ -397,6 +397,7 @@
   <button data-mode="outs" aria-pressed="false">אאוטים בפוקר</button>
   <button data-mode="sparks" aria-pressed="false">ניצוצות</button>
   <button data-mode="wit" aria-pressed="false">חד לשון</button>
+  <button data-mode="compass" aria-pressed="false">מצפן</button>
   <button data-mode="prog" aria-pressed="false">התקדמות</button>
 </div>
 
@@ -1327,6 +1328,997 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
 
 </div>
 
+<!-- ===== מצפן WOOP ===== -->
+<div id="compassMode" class="hidden">
+  <iframe id="compassFrame" title="מצפן WOOP" style="display:block;width:100%;height:calc(100vh - 24px);min-height:560px;border:0;border-radius:14px;background:#0d1220"></iframe>
+  <script type="text/plain" id="compassSrc"><!doctype html><html data-theme="dark"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>מצפן WOOP</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Assistant:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: deep tekhelet header band with Hebrew date, sticky tab bar, one centered column (siddur width); gold used only for small accents */
+:root{
+  --bg:#f4f5f8;
+  --surface:#ffffff;
+  --ink:#141c33;
+  --muted:#5a6377;
+  --line:#dce0e9;
+  --tekhelet:#1d4aa0;
+  --tekhelet-soft:#e7edf9;
+  --band:#132a5c;
+  --band-ink:#f3f5fb;
+  --band-muted:#b7c3e0;
+  --gold:#a5741b;
+  --gold-soft:#f8f0de;
+  --ok:#1e7a4c;
+  --ok-soft:#e1f2e8;
+  --danger:#b3362b;
+  --danger-soft:#fbe9e7;
+  --shadow:0 14px 34px -22px rgba(20,28,51,.45);
+  --display:"Frank Ruhl Libre","David Libre","Times New Roman",serif;
+  --body:"Assistant","Arial Hebrew","Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1220;--surface:#161d2f;--ink:#e9edf6;--muted:#9ba4b9;--line:#283149;
+  --tekhelet:#82a8f0;--tekhelet-soft:#1b2846;--band:#0a1838;--band-ink:#eef2fb;--band-muted:#98a8cc;
+  --gold:#e2b45e;--gold-soft:#2c2516;--ok:#5ecb92;--ok-soft:#153225;--danger:#ef7a6e;--danger-soft:#3a1e1c;--shadow:0 14px 34px -22px rgba(0,0,0,.8);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1220;--surface:#161d2f;--ink:#e9edf6;--muted:#9ba4b9;--line:#283149;
+  --tekhelet:#82a8f0;--tekhelet-soft:#1b2846;--band:#0a1838;--band-ink:#eef2fb;--band-muted:#98a8cc;
+  --gold:#e2b45e;--gold-soft:#2c2516;--ok:#5ecb92;--ok-soft:#153225;--danger:#ef7a6e;--danger-soft:#3a1e1c;--shadow:0 14px 34px -22px rgba(0,0,0,.8);color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.65;direction:rtl;padding-block:0 56px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--band)}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:780px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;margin:0}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:6px}
+
+/* header band */
+.band{background:var(--band);color:var(--band-ink);padding-block:36px 30px;position:relative;overflow:hidden}
+.band canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.5;pointer-events:none}
+.band .wrap{position:relative;display:grid;gap:12px}
+.datebar{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:15px;color:var(--band-muted);font-weight:600}
+.datebar b{color:var(--gold);font-weight:700}
+.band h1{font-size:clamp(40px,8.5vw,64px);font-weight:900;letter-spacing:-.01em}
+.band h1 em{font-style:normal;color:var(--gold);direction:ltr;unicode-bidi:isolate}
+.band .lead{font-size:19px;color:var(--band-muted);max-width:58ch}
+.daily{margin-top:6px;border-right:3px solid var(--gold);padding:2px 14px 2px 0;max-width:60ch}
+.daily q{quotes:none;font-family:var(--display);font-size:20px;color:var(--band-ink)}
+.daily small{display:block;font-size:14px;color:var(--band-muted)}
+
+/* tabs */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.tabs .wrap{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs .wrap::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;background:none;border:none;border-bottom:3px solid transparent;padding:14px 14px 11px;font-weight:700;color:var(--muted);font-size:16px;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--tekhelet);border-bottom-color:var(--tekhelet)}
+.tab .n{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:11px;background:var(--tekhelet-soft);color:var(--tekhelet);font-size:13px;margin-inline-start:6px;padding:0 6px;font-variant-numeric:tabular-nums}
+
+main.wrap{padding-top:28px}
+.view-head{display:grid;gap:6px;margin-bottom:20px}
+.view-head h2{font-size:clamp(28px,5vw,36px)}
+.view-head p{color:var(--muted);max-width:62ch}
+
+/* WOOP letters */
+.letters{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.letter{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:0}
+.letter b{font-family:var(--display);font-size:28px;color:var(--tekhelet);line-height:1.1}
+.letter strong{font-size:16px}
+.letter span{font-size:14px;color:var(--muted);line-height:1.35}
+.letter.cur{border-color:var(--tekhelet);background:var(--tekhelet-soft)}
+@media(max-width:560px){.letters{grid-template-columns:repeat(2,1fr)}}
+
+/* panel */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px clamp(16px,4vw,32px);box-shadow:var(--shadow)}
+.progress{display:flex;gap:6px;margin-bottom:22px}
+.progress i{flex:1;height:5px;border-radius:3px;background:var(--line);transition:background .3s}
+.progress i.on{background:var(--tekhelet)}
+.step-label{font-size:14px;font-weight:700;color:var(--gold);letter-spacing:.03em}
+.step h3{font-size:clamp(25px,4.6vw,32px);margin-block:4px 8px}
+.help{color:var(--muted);margin-bottom:16px;max-width:62ch}
+.domains{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px}
+.domain{background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:14px;text-align:right;color:var(--ink);display:grid;gap:2px;transition:border-color .2s,transform .2s}
+.domain:hover{border-color:var(--tekhelet);transform:translateY(-2px)}
+.domain[aria-pressed="true"]{border-color:var(--tekhelet);background:var(--tekhelet-soft)}
+.domain strong{font-size:17px}
+.domain span{font-size:14px;color:var(--muted);line-height:1.35}
+.domain .glyph{font-family:var(--display);font-size:24px;color:var(--tekhelet);font-weight:700;line-height:1.2}
+
+.fl{display:block;font-size:14px;font-weight:700;color:var(--muted);margin-bottom:6px}
+textarea,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;resize:vertical}
+textarea:focus,input[type=text]:focus{border-color:var(--tekhelet);outline:none}
+textarea{min-height:92px}
+.chips-title{font-size:14px;font-weight:700;color:var(--muted);margin-block:14px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--tekhelet-soft);color:var(--ink);border:1px solid transparent;border-radius:999px;padding:7px 14px;font-size:15px;text-align:right;line-height:1.4}
+.chip:hover{border-color:var(--tekhelet)}
+.tip{margin-top:16px;background:var(--gold-soft);border-radius:12px;padding:12px 14px;font-size:15px}
+.tip b{color:var(--gold)}
+.scale{display:flex;gap:6px;flex-wrap:wrap}
+.scale button{width:44px;height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.scale button[aria-pressed="true"]{background:var(--tekhelet);border-color:var(--tekhelet);color:var(--surface)}
+.scale-row{display:grid;gap:6px;margin-top:16px}
+.scale-row .ends{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);max-width:290px}
+
+.ifthen{display:grid;gap:8px}
+.ifthen .lbl{font-family:var(--display);font-size:22px;color:var(--tekhelet);font-weight:700}
+details.backup{margin-top:18px;border:1.5px dashed var(--line);border-radius:12px;padding:12px 14px}
+details.backup summary{cursor:pointer;font-weight:700;color:var(--ink)}
+details.backup summary span{color:var(--muted);font-weight:400;font-size:15px}
+details.backup .ifthen{margin-top:12px}
+
+.timer{display:flex;align-items:center;gap:14px;margin-block:4px 16px;flex-wrap:wrap;background:var(--bg);border-radius:14px;padding:12px}
+.ring{width:64px;height:64px;position:relative;flex:none}
+.ring svg{transform:rotate(-90deg);display:block}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-variant-numeric:tabular-nums;font-size:18px}
+.timer p{color:var(--muted);font-size:15px;flex:1;min-width:170px}
+
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px;flex-wrap:wrap;align-items:center}
+.btn{border:none;border-radius:12px;padding:12px 22px;font-weight:700;font-size:17px;line-height:1.3}
+.btn.primary{background:var(--tekhelet);color:var(--surface)}
+.btn.primary:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.gold{background:var(--gold);color:var(--surface)}
+.btn.sm{padding:8px 14px;font-size:15px;border-radius:10px}
+.err{color:var(--danger);font-size:15px;margin-top:8px;min-height:1.2em}
+
+.card{border:2px solid var(--tekhelet);border-radius:16px;padding:20px;display:grid;gap:14px;background:var(--bg)}
+.card .row{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start}
+.card .k{font-family:var(--display);font-weight:900;font-size:22px;color:var(--tekhelet);text-align:center;line-height:1.3}
+.card .row div{min-width:0}
+.card .row small{display:block;font-size:13px;font-weight:700;color:var(--muted)}
+.plan-line{background:var(--tekhelet-soft);border-radius:12px;padding:12px 14px;font-family:var(--display);font-size:20px;line-height:1.45}
+.plan-line b{color:var(--tekhelet)}
+.plan-line.alt{background:transparent;border:1.5px dashed var(--line);font-size:17px}
+.tag{font-size:14px;font-weight:700;color:var(--gold)}
+.toast{font-size:15px;color:var(--ok);font-weight:700;min-height:1.4em;margin-top:10px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat b{display:block;font-family:var(--display);font-size:34px;line-height:1.1;color:var(--tekhelet);font-variant-numeric:tabular-nums}
+.stat span{font-size:14px;color:var(--muted)}
+@media(max-width:480px){.stat b{font-size:28px}.stat{padding:12px}}
+
+/* saved plans */
+.plans{display:grid;gap:14px}
+.saved{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:12px;box-shadow:var(--shadow)}
+.saved.example{border-style:dashed;box-shadow:none}
+.saved .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.saved .wish{font-weight:800;font-size:18px;min-width:0}
+.badge{font-size:12px;font-weight:800;background:var(--gold-soft);color:var(--gold);border-radius:999px;padding:3px 10px}
+.today-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--bg);border-radius:12px;padding:10px 12px}
+.today-row p{flex:1;min-width:160px;font-weight:700;font-size:15px}
+.check{border:2px solid var(--ok);background:transparent;color:var(--ok);border-radius:10px;padding:8px 14px;font-weight:800;font-size:15px}
+.check[aria-pressed="true"]{background:var(--ok);color:var(--surface)}
+.heat-wrap{display:grid;gap:6px}
+.heat-wrap .cap{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);flex-wrap:wrap;gap:6px}
+.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;max-width:420px}
+.cell{aspect-ratio:1;border-radius:4px;background:var(--line);border:none;padding:0;max-width:100%}
+.cell.done{background:var(--ok)}
+.cell.today{outline:2px solid var(--tekhelet);outline-offset:1px}
+.cell.future{opacity:.35;cursor:default}
+.saved .meta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.saved .meta .acts{display:flex;gap:8px;flex-wrap:wrap}
+.linkbtn{background:none;border:none;color:var(--muted);text-decoration:underline;padding:4px 0;font-size:14px}
+.confirm{display:inline-flex;gap:10px;align-items:center;font-size:14px;flex-wrap:wrap}
+.empty{border:1.5px dashed var(--line);border-radius:14px;padding:20px;color:var(--muted);display:grid;gap:12px;justify-items:start}
+
+/* rehearsal overlay */
+.overlay{position:fixed;inset:0;z-index:30;background:var(--band);color:var(--band-ink);display:grid;place-items:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));overflow:auto}
+.overlay .in{max-width:620px;width:100%;display:grid;gap:18px;text-align:center;justify-items:center}
+.overlay .k{font-family:var(--display);font-size:64px;color:var(--gold);line-height:1}
+.overlay .lab{font-weight:700;color:var(--band-muted);letter-spacing:.04em}
+.overlay .txt{font-family:var(--display);font-size:clamp(24px,5vw,34px);line-height:1.35}
+.overlay .instr{color:var(--band-muted);max-width:46ch}
+.overlay .dots{display:flex;gap:8px}
+.overlay .dots i{width:10px;height:10px;border-radius:50%;background:var(--band-muted);opacity:.35}
+.overlay .dots i.on{background:var(--gold);opacity:1}
+.overlay .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.overlay .btn.ghost{color:var(--band-ink);border-color:var(--band-muted)}
+.overlay .close{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:calc(14px + env(safe-area-inset-left,0px));background:none;border:1.5px solid var(--band-muted);color:var(--band-ink);border-radius:10px;padding:6px 12px;font-size:15px}
+.say{font-variant-numeric:tabular-nums}
+
+/* journal */
+.jform{display:grid;gap:16px}
+.jlist{display:grid;gap:10px;margin-top:22px}
+.jentry{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:6px}
+.jentry .h{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-weight:700}
+.jentry .h span{color:var(--muted);font-weight:600;font-size:14px}
+.jentry dl{margin:0;display:grid;gap:4px}
+.jentry dt{font-size:13px;font-weight:700;color:var(--muted)}
+.jentry dd{margin:0 0 4px}
+.stars{color:var(--gold);letter-spacing:2px}
+
+/* why */
+.research{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.research article{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:6px;align-content:start}
+.research h3{font-size:21px}
+.research p{color:var(--muted);font-size:16px}
+.research .big{font-family:var(--display);font-size:30px;color:var(--tekhelet);font-weight:900;line-height:1.1}
+@media(max-width:620px){.research{grid-template-columns:1fr}}
+.rules{display:grid;gap:10px;margin:22px 0 0;padding:0;list-style:none}
+.rules li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.rules b{color:var(--tekhelet)}
+.faq{margin-top:26px;display:grid;gap:8px}
+.faq h3{font-size:24px;margin-bottom:6px}
+.faq details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.faq summary{cursor:pointer;font-weight:700}
+.faq details p{color:var(--muted);margin-top:8px}
+
+.miles{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}
+.mile{border-radius:999px;padding:3px 10px;font-weight:800;border:1.5px solid var(--line);color:var(--muted)}
+.mile.got{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.mile-next{color:var(--muted)}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:18px}
+.chart h3{font-size:20px;margin-bottom:2px}
+.chart p{font-size:14px;color:var(--muted);margin-bottom:8px}
+.chart svg{display:block;width:100%;height:auto}
+.backup-box{margin-top:30px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:10px}
+.backup-box h3{font-size:22px}
+.backup-box p{color:var(--muted);font-size:15px}
+.backup-box textarea{min-height:70px;font-size:13px;direction:ltr;text-align:left;font-family:ui-monospace,Menlo,Consolas,monospace}
+.editing{background:var(--gold-soft);border-radius:10px;padding:8px 12px;font-weight:700;font-size:15px;margin-bottom:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ai{margin-top:18px;border:1.5px solid var(--tekhelet);border-radius:14px;padding:14px;background:var(--tekhelet-soft);display:grid;gap:12px}
+.ai-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn.ai-btn{background:var(--surface);color:var(--tekhelet);border:1.5px solid var(--tekhelet);font-size:16px;padding:10px 16px}
+.btn.ai-btn:disabled{opacity:.6;cursor:wait}
+.ai-note{font-size:14px;color:var(--muted)}
+.ai-load{display:flex;gap:10px;align-items:center;color:var(--muted);font-weight:700;flex-wrap:wrap}
+.dotpulse{width:10px;height:10px;border-radius:50%;background:var(--tekhelet);animation:pulse 1s infinite alternate}
+@keyframes pulse{from{opacity:.25;transform:scale(.8)}to{opacity:1;transform:scale(1.15)}}
+.ai-res{display:grid;gap:10px}
+.ai-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pill{border-radius:999px;padding:4px 12px;font-weight:800;font-size:14px}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--gold-soft);color:var(--gold)}
+.pill.bad{background:var(--danger-soft);color:var(--danger)}
+.ai-score{font-weight:700;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ai-sug{background:var(--surface);border-radius:12px;padding:12px;display:grid;gap:8px;justify-items:start}
+.ai-sug small{font-size:13px;font-weight:700;color:var(--muted)}
+.ai-sug div{font-family:var(--display);font-size:18px;line-height:1.45}
+.ai-sug b{color:var(--tekhelet)}
+.ai-tip{font-size:15px}
+.ai-tip b{color:var(--gold)}
+.ai-err{color:var(--danger);font-size:15px}
+.chat{display:grid;gap:14px;padding:16px clamp(12px,3vw,24px)}
+.msgs{display:grid;gap:10px;max-height:min(62vh,600px);overflow-y:auto;overscroll-behavior:contain;padding:2px}
+.msg{max-width:88%;padding:10px 14px;border-radius:16px;overflow-wrap:anywhere;line-height:1.6}
+.msg.me{justify-self:end;background:var(--tekhelet);color:var(--surface);border-end-end-radius:4px;white-space:pre-wrap}
+.msg.bot{justify-self:start;background:var(--bg);border:1px solid var(--line);border-start-start-radius:4px}
+.msg .who{display:block;font-size:12px;font-weight:800;color:var(--tekhelet);margin-bottom:2px}
+.msg.bot p{margin:0 0 8px}.msg.bot p:last-child{margin:0}
+.chat-intro{display:grid;gap:10px;justify-items:start}
+.chat-intro b{font-family:var(--display);font-size:22px}
+.chat-intro span{color:var(--muted);font-size:15px}
+.starters{display:flex;flex-wrap:wrap;gap:8px}
+.cform{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.cform textarea{min-height:58px}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.crow .r{display:flex;gap:8px}
+.chat-off{border:1.5px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted)}
+footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;display:grid;gap:6px}
+footer a{color:var(--tekhelet)}
+
+.fade{animation:fade .35s ease}
+@keyframes fade{from{opacity:.0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="band gut">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="datebar"><span id="hdate">היום</span><span id="gdate"></span><b id="greet"></b></div>
+    <h1>מצפן <em>WOOP</em></h1>
+    <p class="lead">ארבעה צעדים שהופכים רצון טוב למעשה: משאלה, תוצאה, מכשול ותוכנית. בונים פעם אחת, חוזרים על זה דקה בבוקר, ועושים חשבון נפש קצר בערב. בכל שלב אפשר לבקש מ־Claude לבדוק אם זה ריאלי ולהציע ניסוח טוב יותר.</p>
+    <div class="daily"><q id="qtext"></q><small id="qsrc"></small></div>
+  </div>
+</header>
+
+<nav class="tabs gut" aria-label="ניווט">
+  <div class="wrap" role="tablist">
+    <button class="tab" role="tab" data-v="build">בניית תוכנית</button>
+    <button class="tab" role="tab" data-v="chat">שיחה עם Claude</button>
+    <button class="tab" role="tab" data-v="plans">התוכניות שלי<span class="n" id="nplans">0</span></button>
+    <button class="tab" role="tab" data-v="journal">חשבון נפש</button>
+    <button class="tab" role="tab" data-v="why">למה זה עובד</button>
+  </div>
+</nav>
+
+<main class="wrap gut">
+  
+  <section id="v-build" hidden>
+    <div class="view-head"><h2>בונים תוכנית חדשה</h2><p>כעשר דקות של מחשבה שקטה. כדאי לעשות את זה במקום שקט, עם כוונה אמיתית.</p></div>
+    <div class="letters" id="letters">
+      <div class="letter"><b>W</b><strong>משאלה</strong><span>מה אני רוצה להשיג</span></div>
+      <div class="letter"><b>O</b><strong>תוצאה</strong><span>איך זה ייראה כשיצליח</span></div>
+      <div class="letter"><b>O</b><strong>מכשול</strong><span>מה בתוכי עוצר אותי</span></div>
+      <div class="letter"><b>P</b><strong>תוכנית</strong><span>אם X, אז אני עושה Y</span></div>
+    </div>
+    <div class="panel" id="tool" aria-live="polite">
+      <div class="progress" id="progress"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div id="stage"></div>
+    </div>
+  </section>
+
+  
+  <section id="v-chat" hidden>
+    <div class="view-head"><h2>שיחה עם Claude</h2><p>מקום להתייעץ, לחשוב בקול ולבנות יחד תוכנית. Claude רואה את התוכניות שלכם ואת חשבונות הנפש האחרונים, כדי שהעצות יהיו מותאמות לכם.</p></div>
+    <div class="panel chat" id="chatbox">
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <form class="cform" id="cform">
+        <label class="fl" for="c-in" style="margin:0">ההודעה שלכם</label>
+        <textarea id="c-in" placeholder="כתבו ל־Claude כל מה שעל הלב..."></textarea>
+        <div class="crow"><button class="linkbtn" type="button" id="c-clear">שיחה חדשה</button>
+          <span class="r"><button class="btn ghost sm" type="button" id="c-stop" hidden>עצירה</button><button class="btn primary sm" type="submit" id="c-send">לשלוח</button></span></div>
+        <p class="ai-err" id="c-err" style="margin:0"></p>
+      </form>
+    </div>
+    <div class="chat-off" id="chat-off" hidden>השיחה עם Claude זמינה כשפותחים את האתר דרך Claude. כל שאר האתר עובד גם בלעדיה.</div>
+  </section>
+
+  
+  <section id="v-plans" hidden>
+    <div class="view-head"><h2>התוכניות שלי</h2><p>כל בוקר: לחצו "חזרה של דקה" כדי לחזור על התוכנית בדמיון. כל ערב: סמנו אם פעלתם לפיה. "הכל לפי רוב המעשה" (אבות ג, טו).</p></div>
+    <div class="stats" id="stats"></div>
+    <div id="chart"></div>
+    <div class="plans" id="plans"></div>
+    <div class="backup-box">
+      <h3>גיבוי ושחזור</h3>
+      <p>הנתונים נשמרים רק בדפדפן הזה. כדי לא לאבד אותם או כדי להעביר אותם למכשיר אחר: העתיקו את קוד הגיבוי, שמרו אותו אצלכם (למשל בהודעה לעצמכם), והדביקו אותו כאן במכשיר החדש.</p>
+      <div class="nav" style="margin-top:0;justify-content:flex-start"><button class="btn ghost sm" id="bk-copy" type="button">להעתיק קוד גיבוי</button></div>
+      <label class="fl" for="bk-in" style="margin:6px 0 0">שחזור: הדביקו כאן קוד גיבוי</label>
+      <textarea id="bk-in" placeholder="{&quot;plans&quot;:[...]}"></textarea>
+      <div class="nav" style="margin-top:0;justify-content:flex-start"><span id="bk-c"><button class="btn primary sm" id="bk-restore" type="button">לשחזר</button></span></div>
+      <div class="toast" id="bk-t" style="margin:0"></div>
+    </div>
+  </section>
+
+  
+  <section id="v-journal" hidden>
+    <div class="view-head"><h2>חשבון נפש של ערב</h2><p>שלוש דקות לפני השינה. לא כדי לשפוט את עצמכם, אלא כדי לראות מה עבד ומה לשפר מחר.</p></div>
+    <form class="panel jform" id="jform">
+      <div class="scale-row"><span class="fl" style="margin:0">כמה פעלתי היום לפי התוכניות שלי?</span>
+        <div class="scale" id="jrate" role="group" aria-label="דירוג 1 עד 5"></div>
+        <div class="ends"><span>1 · כמעט לא</span><span>5 · במלואן</span></div></div>
+      <div><label class="fl" for="j-thanks">על מה אני מודה לה' היום</label><textarea id="j-thanks" placeholder="לדוגמה: על שיחה טובה עם אבא, על בריאות, על פרנסה שהגיעה"></textarea></div>
+      <div><label class="fl" for="j-win">איפה הצלחתי, גם אם בקטן</label><textarea id="j-win" placeholder="לדוגמה: עצרתי לפני שעניתי בכעס"></textarea></div>
+      <div><label class="fl" for="j-next">מה אעשה אחרת מחר</label><textarea id="j-next" placeholder="לדוגמה: להניח את הטלפון בחדר אחר לפני הלימוד"></textarea></div>
+      <div id="jai"></div>
+      <div class="nav" style="margin-top:0"><span class="toast" id="jtoast" style="margin:0"></span><button class="btn primary" type="submit">לשמור את חשבון הנפש</button></div>
+    </form>
+    <div class="jlist" id="jlist"></div>
+  </section>
+
+  
+  <section id="v-why" hidden>
+    <div class="view-head"><h2>למה זה עובד</h2><p>השיטה מחברת שני ממצאים שנבדקו במחקרים רבים בפסיכולוגיה של המוטיבציה.</p></div>
+    <div class="research">
+      <article><div class="big">ניגוד מנטלי</div><h3>פרופ' גבריאל אטינגן, אוניברסיטת ניו יורק</h3>
+        <p>חלימה חיובית לבדה נותנת תחושה נעימה, אבל מורידה את האנרגיה לפעול. כשמדמיינים את ההצלחה ומיד אחריה את המכשול האמיתי, המוח מקשר בין הרצון למציאות ומתגייס לפעולה.</p></article>
+      <article><div class="big">94 מחקרים</div><h3>כוונות יישום "אם–אז"</h3>
+        <p>פרופ' פיטר גולוויצר הראה שתוכנית בנוסח "אם מצב X, אז אני עושה Y" מפעילה את ההתנהגות כמעט אוטומטית. מטא־אנליזה של גולוויצר ושירן (2006) על 94 מחקרים מצאה השפעה בינונית עד גדולה על השגת מטרות.</p></article>
+    </div>
+    <ul class="rules">
+      <li><b>הסדר חשוב.</b> קודם מדמיינים את התוצאה, ורק אחר כך את המכשול. בסדר ההפוך ההשפעה חלשה יותר.</li>
+      <li><b>המכשול הוא פנימי.</b> לא "הבוס", "הילדים" או "אין זמן", אלא הרגל, רגש או מחשבה שלי.</li>
+      <li><b>צעד אחד קטן וספציפי.</b> "אלמד יותר" הוא חלום. "אם התיישבתי אחרי ארוחת ערב, אז אני פותח את הספר ל־10 דקות" היא תוכנית.</li>
+      <li><b>חזרה יומית.</b> חזרה קצרה על התוכנית בבוקר שומרת את ה"אם–אז" זמין בדיוק ברגע שהוא נדרש.</li>
+    </ul>
+    <div class="faq">
+      <h3>שאלות נפוצות</h3>
+      <details><summary>כמה תוכניות כדאי להחזיק במקביל?</summary><p>אחת או שתיים. עבודה ממוקדת על מידה או הרגל אחד בכל פעם מביאה יותר תוצאות מניסיון לתקן הכל ביחד.</p></details>
+      <details><summary>מה עושים אחרי יום שנכשלתי?</summary><p>חוזרים לתוכנית כבר למחרת, בלי רגשות אשם. "שבע יפול צדיק וקם" (משלי כד, טז). אם זה קורה הרבה, כנראה שהמכשול לא מדויק. נסו לנסח אותו מחדש.</p></details>
+      <details><summary>איך זה מתיישב עם בטחון בה'?</summary><p>התוכנית עוסקת בהשתדלות, בחלק שבידיים שלנו. התוצאה נשארת בידי שמיים. כך הפעולה נעשית מתוך שלווה ולא מתוך לחץ.</p></details>
+      <details><summary>איפה נשמר המידע שלי?</summary><p>רק בדפדפן הזה, במכשיר הזה. אף אחד אחר לא רואה אותו. כדאי להשתמש באתר תמיד מאותו מכשיר ומאותו דפדפן.</p></details>
+    </div>
+  </section>
+
+  <footer>
+    <span>"לא עליך המלאכה לגמור, ולא אתה בן חורין להיבטל ממנה" (אבות ב, טז)</span>
+    <span>לקריאה על השיטה באתר הרשמי: <a href="https://woopmylife.org" target="_blank" rel="noopener">woopmylife.org</a></span>
+  </footer>
+</main>
+
+<div class="overlay" id="rehearse" hidden role="dialog" aria-modal="true" aria-label="חזרה מנטלית"></div>
+
+<script>
+const DOMAINS=[
+ {id:"parnasa",g:"פ",name:"פרנסה בשפע",sub:"עבודה, עסק, כסף והשתדלות",
+  wishes:["לעבוד שעתיים ממוקדות כל בוקר על המשימה הכי חשובה","לשלוח 3 הצעות ללקוחות חדשים השבוע","לבקש העלאה בשכר עד סוף החודש","לנהל תקציב חודשי ולהפריש מעשר"],
+  obstacles:["אני דוחה את המשימות הקשות ונכנס לטלפון","פחד מדחייה כשאני פונה לאנשים","דאגה ולחץ שמשתקים אותי במקום לפעול","אני מתחיל הרבה דברים ולא מסיים"],
+  ifs:["אני מתיישב לעבוד בבוקר","עולה בי דאגה לגבי פרנסה","אני מרגיש פחד לפני שיחה עם לקוח","אני מושיט יד לטלפון בזמן עבודה"],
+  thens:["אני מתחיל במשימה הכי חשובה ל־25 דקות לפני כל דבר אחר","אני אומר 'השלך על ה' יהבך' ועושה צעד מעשי אחד קטן","אני נושם עמוק, מזכיר לעצמי שההשתדלות שלי והתוצאה מה', ומתקשר","אני מניח אותו בחדר אחר עד ההפסקה"],
+  tip:"השתדלות ובטחון הולכים יחד: התוכנית עוסקת במה שבידיים שלכם, והתוצאה בידי שמיים."},
+ {id:"torah",g:"ת",name:"לימוד תורה",sub:"קביעות, חזרה והבנה",
+  wishes:["לקבוע 20 דקות לימוד כל ערב","ללמוד דף יומי או משנה יומית","לסיים מסכת או ספר עד החג הבא","ללמוד עם חברותא פעם בשבוע"],
+  obstacles:["אני עייף בערב ונרדם או גולל בטלפון","אני מרגיש שאני לא מבין ומתייאש","אני מוותר אחרי יום אחד שפספסתי","אני דוחה ל'אחר כך' ואחר כך לא מגיע"],
+  ifs:["אני מסיים ארוחת ערב","פספסתי יום לימוד","אני לא מבין קטע בגמרא","אני מרגיש עייפות כשאני פותח את הספר"],
+  thens:["אני פותח את הספר ל־10 דקות לפחות לפני הטלפון","אני משלים למחרת רק 5 דקות וממשיך בלי רגשות אשם","אני מסמן אותו, שואל את החברותא או הרב, וממשיך הלאה","אני לומד בעמידה או בקול רם ל־5 דקות"],
+  tip:"\"עשה תורתך קבע\" (אבות א, טו): זמן קבוע ומקום קבוע חשובים יותר מהכמות."},
+ {id:"hashem",g:"ה",name:"התחברות לה'",sub:"אמונה, התבודדות והודיה",
+  wishes:["לדבר עם ה' במילים שלי 5 דקות ביום","להודות לה' על 3 דברים בכל לילה","לחוש את נוכחות ה' במהלך היום","לחזק את הבטחון בזמנים קשים"],
+  obstacles:["אני מרגיש מרוחק ולא ראוי לדבר עם ה'","אני שוכח לגמרי בתוך עומס היום","המחשבות נודדות כשאני מנסה להתבודד","אני מרגיש מבוכה לדבר בקול"],
+  ifs:["אני מרגיש שאני לא ראוי","אני נכנס לרכב או יוצא מהבית","קורה לי משהו טוב קטן","אני נכנס למיטה בלילה"],
+  thens:["אני אומר משפט אחד פשוט: 'ריבונו של עולם, אני רוצה להתקרב אליך'","אני מקדיש דקה לשיחה אישית עם ה'","אני אומר בלב 'תודה ה'' ברגע עצמו","אני מונה 3 דברים טובים מהיום ומודה עליהם"],
+  tip:"התבודדות לא חייבת להיות ארוכה. משפט אחד כן שווה יותר מתוכנית גדולה שלא מתקיימת."},
+ {id:"tfila",g:"ת",name:"תפילה",sub:"כוונה, מניין וזמנים",
+  wishes:["להתפלל שמונה עשרה בכוונה","להגיע למניין שחרית 3 פעמים בשבוע","להבין את פירוש המילים בברכות","לא לדבר בזמן התפילה"],
+  obstacles:["המחשבות נודדות ואני ממלמל בלי לשים לב","אני לא קם בזמן בבוקר","אני ממהר ומתפלל מהר מדי","אני נשלף לטלפון בבית הכנסת"],
+  ifs:["אני שם לב שאני ממלמל בלי כוונה","השעון המעורר מצלצל","אני עומד להתחיל שמונה עשרה","אני נכנס לבית הכנסת"],
+  thens:["אני עוצר ואומר את המילה הבאה לאט, מילה במילה","אני קם מיד ואומר 'מודה אני' לפני שאני חושב","אני עוצר 3 שניות וחושב 'לפני מי אני עומד'","אני מעביר את הטלפון למצב טיסה"],
+  tip:"בחרו ברכה אחת שבה תכוונו באמת השבוע. כוונה בברכה אחת עדיפה על ניסיון לכוון בכולן ולהתייאש."},
+ {id:"midot",g:"מ",name:"מידות טובות",sub:"כעס, סבלנות, שמירת הלשון",
+  wishes:["להפסיק לכעוס ולהרים את הקול","לשמור על הלשון ולא לדבר לשון הרע","להיות סבלני יותר עם הסובבים אותי","לדון כל אדם לכף זכות"],
+  obstacles:["אני מגיב מהר מדי כשמשהו מעצבן אותי","אני נגרר לשיחות על אנשים אחרים","אני מתגונן כשמעירים לי","אני שופט אנשים מהר"],
+  ifs:["אני מרגיש כעס עולה בגוף","השיחה מתחילה לעבור לדיבור על מישהו","מישהו מעיר לי","אני חושב מחשבה שלילית על מישהו"],
+  thens:["אני שותק 10 שניות ונושם לפני שאני עונה","אני משנה נושא או אומר 'בוא נדבר על משהו אחר'","אני אומר 'תודה, אחשוב על זה' במקום להתווכח","אני מחפש סיבה אחת טובה למה הוא עשה את זה"],
+  tip:"בספר \"חשבון הנפש\" של ר' מנחם מנדל לפין מסטנוב עובדים על מידה אחת בכל שבוע. בחרו אחת, ותנו לה זמן."},
+ {id:"bayit",g:"ב",name:"שלום בית ומשפחה",sub:"זוגיות, ילדים והורים",
+  wishes:["להקשיב לבן או בת הזוג בלי טלפון בערב","לבלות זמן איכות עם כל ילד פעם בשבוע","להתקשר להורים פעמיים בשבוע","לפרגן ולומר מילה טובה כל יום"],
+  obstacles:["אני עייף וסגור כשאני חוזר הביתה","הטלפון מושך אותי באמצע שיחה","אני שם לב רק למה שלא בסדר","אני דוחה שיחות כי 'אין זמן'"],
+  ifs:["אני נכנס הביתה מהעבודה","מישהו מהמשפחה מדבר אליי","אני רואה משהו טוב שבן או בת הזוג עשו","אני בדרך הביתה ברכב"],
+  thens:["אני עוצר בדלת, נושם, ומחייך לפני שאני נכנס","אני מניח את הטלפון עם המסך כלפי מטה ומסתכל בעיניים","אני אומר את זה בקול באותו רגע","אני מתקשר להורים ל־5 דקות"],
+  tip:"\"איזהו מכובד? המכבד את הבריות\" (אבות ד, א). הכבוד מתחיל בבית."},
+ {id:"chesed",g:"ח",name:"חסד ונתינה",sub:"עזרה, צדקה ומעשים טובים",
+  wishes:["לעשות מעשה טוב מכוון אחד בכל יום","לתת צדקה באופן קבוע","להתנדב פעם בחודש","לשאול לשלום אדם בודד או חולה"],
+  obstacles:["אני שקוע בעצמי ולא רואה הזדמנויות","אני מתבייש להציע עזרה","אני חושב שמעשה קטן לא משנה","אני שוכח בתוך העומס"],
+  ifs:["אני רואה מישהו מתקשה","אני מקבל משכורת","אני שותה קפה של בוקר","אני חושב על מישהו שלא שמעתי ממנו זמן רב"],
+  thens:["אני שואל 'אפשר לעזור?'","אני מעביר מיד את הצדקה שקבעתי","אני חושב: למי אוכל לעשות טוב היום?","אני שולח לו הודעה קצרה עכשיו"],
+  tip:"לפי הרמב\"ם, עדיף לתת מאה פעמים מטבע אחד מאשר פעם אחת מאה מטבעות, כי החזרה היא שבונה את המידה."},
+ {id:"guf",g:"ג",name:"בריאות ושמירת הגוף",sub:"שינה, תנועה והרגלים",
+  wishes:["ללכת 30 דקות ביום","ללכת לישון עד 23:00","לשתות יותר מים ולאכול מסודר","להפסיק הרגל מזיק"],
+  obstacles:["אני נגרר למסכים בלילה","אני אומר לעצמי 'אין לי כוח היום'","אני אוכל מתוך לחץ או שעמום","אני מוותר אחרי פספוס אחד"],
+  ifs:["השעה 22:30","אני אומר לעצמי שאין לי כוח","אני מרגיש דחף לאכול בלי רעב","פספסתי יום"],
+  thens:["אני מטעין את הטלפון מחוץ לחדר השינה","אני הולך רק 5 דקות, ואם בא לי ממשיך","אני שותה כוס מים ומחכה 10 דקות","אני חוזר להרגל כבר למחרת, בלי שיפוטיות"],
+  tip:"\"ונשמרתם מאד לנפשותיכם\". שמירת הגוף היא חלק מעבודת ה'."},
+ {id:"other",g:"+",name:"משהו אחר",sub:"מטרה אישית משלי",wishes:[],obstacles:[],ifs:[],thens:[],
+  tip:"בחרו משהו מאתגר אבל אפשרי בשבועות הקרובים."}
+];
+const QUOTES=[
+ ["במקום שאדם רוצה לילך בו, מוליכין אותו","מכות י ע\"ב"],
+ ["הכל לפי רוב המעשה","אבות ג, טו"],
+ ["שבע יפול צדיק וקם","משלי כד, טז"],
+ ["עשה תורתך קבע, אמור מעט ועשה הרבה","אבות א, טו"],
+ ["אם אין אני לי, מי לי? ואם לא עכשיו, אימתי?","אבות א, יד"],
+ ["איזהו גיבור? הכובש את יצרו","אבות ד, א"],
+ ["פתחו לי פתח כחודו של מחט, ואני פותח לכם פתח כפתחו של אולם","שיר השירים רבה ה, ב"],
+ ["השלך על ה' יהבך והוא יכלכלך","תהלים נה, כג"],
+ ["לא עליך המלאכה לגמור, ולא אתה בן חורין להיבטל ממנה","אבות ב, טז"],
+ ["לפום צערא אגרא","אבות ה, כג"]
+];
+const DAYN=["א","ב","ג","ד","ה","ו","ש"];
+const KEY="woop-hebrew-plans-v1", JKEY="woop-hebrew-journal-v1", UIKEY="woop-hebrew-ui-v1";
+const ui=(()=>{try{const o=JSON.parse(localStorage.getItem(UIKEY));return o&&typeof o==="object"?o:{}}catch(e){return {}}})();
+let curView="build", booted=false, saveT=null, restoredStep=-1;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const load=k=>{try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return []}};
+const save=(k,a)=>{try{localStorage.setItem(k,JSON.stringify(a));return true}catch(e){return false}};
+const dk=(d=new Date())=>d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+function hebDate(d){try{return new Intl.DateTimeFormat("he-u-ca-hebrew",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(d)}catch(e){return ""}}
+
+/* ---------- header ---------- */
+(function header(){
+  const now=new Date();
+  $("#hdate").textContent=hebDate(now)||"";
+  try{$("#gdate").textContent=now.toLocaleDateString("he-IL",{day:"numeric",month:"long",year:"numeric"})}catch(e){}
+  const h=now.getHours();
+  const dow=now.getDay();
+  $("#greet").textContent=(dow===6||(dow===5&&h>=12))?"שבת שלום":h<5?"לילה טוב":h<12?"בוקר טוב":h<17?"צהריים טובים":h<21?"ערב טוב":"לילה טוב";
+  const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/864e5);
+  const q=QUOTES[doy%QUOTES.length]; $("#qtext").textContent=q[0]; $("#qsrc").textContent=q[1];
+  // quiet star field
+  const c=$("#sky"),x=c.getContext("2d");
+  function draw(){const r=c.getBoundingClientRect(),dpr=window.devicePixelRatio||1;c.width=r.width*dpr;c.height=r.height*dpr;x.scale(dpr,dpr);
+    let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+    for(let i=0;i<90;i++){const px=rnd()*r.width,py=rnd()*r.height,s=rnd()*1.4+.3;x.fillStyle=`rgba(226,180,94,${(rnd()*.6+.2).toFixed(2)})`;x.beginPath();x.arc(px,py,s,0,7);x.fill()}}
+  draw(); addEventListener("resize",()=>{x.setTransform(1,0,0,1,0,0);draw()});
+})();
+
+/* ---------- routing ---------- */
+const VIEWS=["build","chat","plans","journal","why"];
+function show(v){
+  if(!VIEWS.includes(v)) v=load(KEY).length?"plans":"build";
+  if(booted&&v!==curView) (ui.scroll=ui.scroll||{})[curView]=Math.round(scrollY);
+  curView=v;
+  VIEWS.forEach(n=>{$("#v-"+n).hidden=n!==v});
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.v===v));
+  if(v==="plans") renderPlans(); if(v==="journal") renderJournal(); if(v==="chat") renderChat();
+  saveUI();
+}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{const v=t.dataset.v; show(v); location.hash=v;
+  const y=ui.scroll&&ui.scroll[v]; window.scrollTo({top:y!=null?y:Math.min(window.scrollY,$(".tabs").offsetTop)})});
+addEventListener("hashchange",()=>show(location.hash.slice(1)));
+function go(v){location.hash=v;show(v);$(".tabs").scrollIntoView({behavior:"smooth"})}
+
+/* ---------- builder ---------- */
+const blank=()=>({editId:null,step:0,domain:null,wish:"",importance:0,outcome:"",obstacle:"",ifp:"",thenp:"",ifp2:"",thenp2:""});
+let st=blank(), timerId=null;
+const D=()=>DOMAINS.find(x=>x.id===st.domain);
+function chips(list,target){
+  if(!list.length) return "";
+  return `<div class="chips-title">רעיונות. לחצו כדי למלא, ואז ערכו במילים שלכם</div><div class="chips">${list.map((t,i)=>`<button type="button" class="chip" data-t="${target}" data-i="${i}">${esc(t)}</button>`).join("")}</div>`;
+}
+function render(){
+  clearInterval(timerId);
+  document.querySelectorAll("#progress i").forEach((el,i)=>el.classList.toggle("on",i<=st.step));
+  document.querySelectorAll("#letters .letter").forEach((el,i)=>el.classList.toggle("cur",i===st.step-1));
+  const d=D(); let h="";
+  if(st.step===0){
+    h=`<div class="step fade"><div class="step-label">התחלה</div><h3>באיזה תחום תרצו לצמוח?</h3>
+      <p class="help">בחרו תחום אחד. עבודה ממוקדת על דבר אחד מביאה יותר תוצאות מניסיון לתקן הכל בבת אחת.</p>
+      <div class="domains">${DOMAINS.map(x=>`<button type="button" class="domain" data-d="${x.id}" aria-pressed="${st.domain===x.id}"><span class="glyph">${x.g}</span><strong>${x.name}</strong><span>${x.sub}</span></button>`).join("")}</div>
+      <div class="nav"><span></span><button class="btn primary" id="next" ${st.domain?"":"disabled"}>להמשיך</button></div></div>`;
+  } else if(st.step===1){
+    h=`<div class="step fade"><div class="step-label">שלב 1 מתוך 4 · משאלה</div><h3>מה הדבר שהכי חשוב לכם להשיג?</h3>
+      <p class="help">משאלה אחת, מאתגרת אבל ריאלית, לשבועות הקרובים. ככל שהיא ספציפית יותר, קל יותר לפעול לפיה.</p>
+      <label for="f-wish" class="fl">המשאלה שלי · ${esc(d.name)}</label>
+      <textarea id="f-wish" placeholder="לדוגמה: ${esc(d.wishes[0]||"לקום כל בוקר בזמן ולהתחיל את היום בכוונה")}">${esc(st.wish)}</textarea>
+      ${chips(d.wishes,"wish")}
+      <div class="scale-row"><span class="fl" style="margin:0">כמה זה חשוב לי?</span><div class="scale" id="imp">${[1,2,3,4,5].map(n=>`<button type="button" data-n="${n}" aria-pressed="${st.importance===n}">${n}</button>`).join("")}</div><div class="ends"><span>1 · נחמד</span><span>5 · חשוב מאוד</span></div></div>
+      <div class="tip"><b>טיפ:</b> ${esc(d.tip)}</div>
+      <div class="nav"><button class="btn ghost" id="back">חזרה</button><button class="btn primary" id="next">להמשיך</button></div><div class="err" id="err"></div></div>`;
+  } else if(st.step===2){
+    h=`<div class="step fade"><div class="step-label">שלב 2 מתוך 4 · תוצאה</div><h3>דמיינו שזה כבר הצליח</h3>
+      <p class="help">מה הדבר הכי טוב שיקרה? איך תרגישו? מה ישתנה אצלכם, במשפחה, בקשר עם ה'? עצמו עיניים ותנו לתמונה להתמלא בפרטים.</p>
+      <div class="timer"><div class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="5"/><circle id="arc" cx="32" cy="32" r="28" fill="none" stroke="var(--tekhelet)" stroke-width="5" stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="0"/></svg><b id="tnum">60</b></div>
+        <p>דקה של דמיון מודרך לפני שכותבים</p><button class="btn gold sm" id="tstart" type="button">להתחיל דקה</button></div>
+      <label for="f-out" class="fl">מה אני רואה ומרגיש כשזה הצליח</label>
+      <textarea id="f-out" placeholder="לדוגמה: אני מרגיש שלם, הילדים רואים אבא שלומד, יש לי שקט בלב">${esc(st.outcome)}</textarea>
+      <div class="nav"><button class="btn ghost" id="back">חזרה</button><button class="btn primary" id="next">להמשיך</button></div><div class="err" id="err"></div></div>`;
+  } else if(st.step===3){
+    h=`<div class="step fade"><div class="step-label">שלב 3 מתוך 4 · מכשול</div><h3>מה בתוככם עוצר אתכם?</h3>
+      <p class="help">חפשו את המכשול הפנימי העיקרי: הרגל, רגש, מחשבה או פיתוי. לא אנשים אחרים ולא נסיבות. זה היצר שצריך לפגוש פנים אל פנים.</p>
+      <label for="f-obs" class="fl">המכשול העיקרי שלי</label>
+      <textarea id="f-obs" placeholder="לדוגמה: אני אומר לעצמי 'עוד חמש דקות' ונשאר בטלפון">${esc(st.obstacle)}</textarea>
+      ${chips(d.obstacles,"obstacle")}
+      <div class="tip"><b>שאלה שעוזרת:</b> בפעם האחרונה שלא עשיתם את זה, מה בדיוק עבר עליכם באותו רגע?</div>
+      <div class="nav"><button class="btn ghost" id="back">חזרה</button><button class="btn primary" id="next">להמשיך</button></div><div class="err" id="err"></div></div>`;
+  } else if(st.step===4){
+    h=`<div class="step fade"><div class="step-label">שלב 4 מתוך 4 · תוכנית</div><h3>בנו משפט "אם–אז" אחד</h3>
+      <p class="help">ב"אם" כתבו את הרגע שבו המכשול מופיע. ב"אז" כתבו פעולה אחת קטנה וברורה שתעשו מיד.</p>
+      <div class="ifthen"><label for="f-if" class="lbl">אם</label><input type="text" id="f-if" value="${esc(st.ifp)}" placeholder="אני מרגיש ש...">
+      ${chips(d.ifs,"ifp")}
+      <label for="f-then" class="lbl" style="margin-top:10px">אז</label><input type="text" id="f-then" value="${esc(st.thenp)}" placeholder="אני עושה...">
+      ${chips(d.thens,"thenp")}</div>
+      <details class="backup" ${st.ifp2||st.thenp2?"open":""}><summary>תוכנית גיבוי <span>(לא חובה) למקרה שהמכשול מופיע אחרת</span></summary>
+        <div class="ifthen"><label for="f-if2" class="lbl">אם</label><input type="text" id="f-if2" value="${esc(st.ifp2)}" placeholder="לדוגמה: פספסתי יום">
+        <label for="f-then2" class="lbl">אז</label><input type="text" id="f-then2" value="${esc(st.thenp2)}" placeholder="לדוגמה: אני חוזר כבר מחר, אפילו ל־5 דקות"></div></details>
+      <div class="nav"><button class="btn ghost" id="back">חזרה</button><button class="btn primary" id="next">לסיכום</button></div><div class="err" id="err"></div></div>`;
+  } else {
+    h=`<div class="step fade"><div class="step-label">התוכנית מוכנה</div><h3>אמרו את המשפט בקול שלוש פעמים</h3>
+      <p class="help">חזרה בקול מקבעת את הקשר בין הרגע לפעולה. כשהרגע יגיע, התגובה תבוא כמעט מעצמה.</p>
+      <div class="card"><div class="tag">${esc(d.name)}${st.importance?` · חשיבות ${st.importance}/5`:""}</div>
+        <div class="row"><span class="k">W</span><div><small>משאלה</small>${esc(st.wish)}</div></div>
+        <div class="row"><span class="k">O</span><div><small>תוצאה</small>${esc(st.outcome)}</div></div>
+        <div class="row"><span class="k">O</span><div><small>מכשול</small>${esc(st.obstacle)}</div></div>
+        <div class="plan-line"><b>אם</b> ${esc(st.ifp)}, <b>אז</b> ${esc(st.thenp)}.</div>
+        ${st.ifp2&&st.thenp2?`<div class="plan-line alt"><b>גיבוי:</b> אם ${esc(st.ifp2)}, אז ${esc(st.thenp2)}.</div>`:""}</div>
+      <div class="nav"><button class="btn ghost" id="back">לערוך</button><span style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" id="copy">להעתיק</button><button class="btn primary" id="savebtn">${st.editId?"לשמור שינויים":"לשמור ולהתחיל לעקוב"}</button></span></div>
+      <div class="toast" id="toast"></div></div>`;
+  }
+  if(st.step>=1) h=h.replace('<div class="nav">',aiBlock()+'<div class="nav">');
+  if(restoredStep===st.step&&st.step>=1&&!st.editId) h=`<div class="editing"><span>ממשיכים מאיפה שעצרתם</span><button class="linkbtn" id="restart" type="button">להתחיל תוכנית חדשה</button></div>`+h;
+  if(st.editId) h=`<div class="editing"><span>עריכת תוכנית קיימת. המעקב שלה יישמר.</span><button class="linkbtn" id="cancel-edit">ביטול עריכה</button></div>`+h;
+  $("#stage").innerHTML=h; bind();
+  const rs=$("#restart"); if(rs) rs.onclick=()=>{st=blank();clearAI();restoredStep=-1;render()};
+  saveUI();
+  const ce=$("#cancel-edit"); if(ce) ce.onclick=()=>{st=blank();clearAI();render();go("plans")};
+}
+function readFields(){
+  const m={"f-wish":"wish","f-out":"outcome","f-obs":"obstacle","f-if":"ifp","f-then":"thenp","f-if2":"ifp2","f-then2":"thenp2"};
+  for(const id in m){const el=document.getElementById(id); if(el) st[m[id]]=el.value.trim();}
+}
+function bind(){
+  document.querySelectorAll(".domain").forEach(b=>b.onclick=()=>{
+    if(st.domain!==b.dataset.d){st={...blank(),domain:b.dataset.d};clearAI()} render();
+  });
+  document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{
+    readFields(); const list={wish:D().wishes,obstacle:D().obstacles,ifp:D().ifs,thenp:D().thens}[c.dataset.t];
+    st[c.dataset.t]=list[+c.dataset.i]; render();
+    const el=document.getElementById({wish:"f-wish",obstacle:"f-obs",ifp:"f-if",thenp:"f-then"}[c.dataset.t]);
+    if(el){el.focus({preventScroll:true});el.setSelectionRange(el.value.length,el.value.length)}
+  });
+  document.querySelectorAll("#imp button").forEach(b=>b.onclick=()=>{readFields();st.importance=+b.dataset.n;render()});
+  const ag=$("#ai-go"); if(ag) ag.onclick=aiRun;
+  const as=$("#ai-stop"); if(as) as.onclick=()=>aiCtl?.abort();
+  const ac=$("#ai-chat"); if(ac) ac.onclick=()=>{readFields();const n={1:"המשאלה",2:"התוצאה",3:"המכשול",4:"תוכנית ה'אם–אז'",5:"התוכנית"}[st.step];
+    const val={1:st.wish,2:st.outcome,3:st.obstacle,4:`אם ${st.ifp}, אז ${st.thenp}`,5:`אם ${st.ifp}, אז ${st.thenp}`}[st.step];
+    chatOpen(`רציתי להתייעץ על ${n} שלי: "${val}". `)};
+  const au=$("#ai-use"); if(au) au.onclick=()=>{readFields();const r=AI[st.step];if(!r||!r.data)return;const d=r.data;
+    if(st.step===1) st.wish=d.suggestion; else if(st.step===2) st.outcome=d.suggestion; else if(st.step===3) st.obstacle=d.suggestion;
+    else if(st.step===4){st.ifp=d.suggest_if;st.thenp=d.suggest_then}
+    r.used=true; render()};
+  const back=$("#back"); if(back) back.onclick=()=>{readFields();st.step--;render();scrollTool()};
+  const next=$("#next"); if(next) next.onclick=()=>{
+    readFields(); const e=$("#err"); const need=(f,m)=>{if(!st[f]){e.textContent=m;return false}return true};
+    if(st.step===1&&!need("wish","כתבו משאלה אחת כדי להמשיך.")) return;
+    if(st.step===2&&!need("outcome","כתבו משפט או שניים על איך זה ייראה כשיצליח.")) return;
+    if(st.step===3&&!need("obstacle","כתבו מכשול פנימי אחד.")) return;
+    if(st.step===4&&(!st.ifp||!st.thenp)){e.textContent="מלאו גם את ה'אם' וגם את ה'אז'.";return}
+    st.step++; render(); scrollTool();
+  };
+  const ts=$("#tstart"); if(ts) ts.onclick=()=>{
+    let t=60; ts.disabled=true; ts.textContent="עיניים עצומות...";
+    const arc=$("#arc"),num=$("#tnum");
+    timerId=setInterval(()=>{t--;num.textContent=t;arc.setAttribute("stroke-dashoffset",(175.9*(60-t)/60).toFixed(1));
+      if(t<=0){clearInterval(timerId);ts.textContent="עכשיו כתבו מה ראיתם";num.textContent="✓";$("#f-out")?.focus()}},1000);
+  };
+  const cp=$("#copy"); if(cp) cp.onclick=()=>copyText(planText(st),$("#toast"));
+  const sv=$("#savebtn"); if(sv) sv.onclick=()=>{
+    const a=load(KEY); const fields={domain:st.domain,wish:st.wish,importance:st.importance,outcome:st.outcome,obstacle:st.obstacle,ifp:st.ifp,thenp:st.thenp,ifp2:st.ifp2,thenp2:st.thenp2};
+    const ex=st.editId&&a.find(x=>x.id==st.editId);
+    if(ex) Object.assign(ex,fields); else a.unshift({id:Date.now(),...fields,created:dk(),done:{},rehearsed:{}});
+    const ok=save(KEY,a); updateCount();
+    if(!ok){$("#toast").textContent="לא ניתן לשמור בדפדפן הזה. העתיקו את התוכנית במקום.";return}
+    st=blank(); clearAI(); render(); go("plans");
+  };
+}
+function scrollTool(){const t=$("#tool").getBoundingClientRect().top; if(t<60) $("#tool").scrollIntoView({behavior:"smooth",block:"start"})}
+function planText(p){const d=DOMAINS.find(x=>x.id===p.domain)||{name:""};
+  return `מצפן WOOP · ${d.name}\nמשאלה: ${p.wish}\nתוצאה: ${p.outcome}\nמכשול: ${p.obstacle}\nתוכנית: אם ${p.ifp}, אז ${p.thenp}.`+(p.ifp2&&p.thenp2?`\nגיבוי: אם ${p.ifp2}, אז ${p.thenp2}.`:"")}
+function copyText(txt,out){
+  out.style.color="";
+  const fail=()=>{out.textContent="ההעתקה לא נתמכת כאן. סמנו את הטקסט והעתיקו ידנית."};
+  try{navigator.clipboard.writeText(txt).then(()=>{out.textContent="הועתק"},fail)}catch(e){fail()}
+}
+
+/* ---------- Claude coach ---------- */
+let sample=null, aiOff=false, aiCtl=null;
+const AI={};
+function clearAI(){aiCtl?.abort();for(const k in AI) delete AI[k]}
+const OFF_CODES=["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"];
+const VERD={yes:["ריאלי","ok"],partly:["ריאלי חלקית","warn"],no:["לא ריאלי כרגע","bad"]};
+try{ if(window.claude&&claude.use) claude.use("sample").then(s=>{ if(s){sample=s; render(); drawJournalAI(); renderChat();} }).catch(()=>{}); }catch(e){}
+function aiErr(e){const c=e&&e.code;
+  return c==="rate_limited"?"יותר מדי בקשות כרגע. נסו שוב בעוד דקה."
+   :c==="session_expired"?"צריך להתחבר מחדש ל־Claude ואז לנסות שוב."
+   :c==="invalid_json"||c==="empty_completion"?"התשובה לא התקבלה כמו שצריך. לחצו שוב."
+   :c==="refused"?"Claude לא יכול לבדוק את הניסוח הזה. נסו לנסח אחרת."
+   :OFF_CODES.includes(c)?"העזרה של Claude לא אושרה בתצוגה הזאת."
+   :"משהו השתבש בחיבור. נסו שוב."}
+function aiBlock(){
+  if(!sample) return "";
+  if(aiOff) return `<div class="ai"><p class="ai-note" style="margin:0">העזרה של Claude לא אושרה בתצוגה הזאת. אפשר להמשיך גם בלעדיה.</p></div>`;
+  const s=st.step, r=AI[s];
+  const label=s===5?"✦ Claude: כמה התוכנית כולה ריאלית?":"✦ בדיקה עם Claude: האם זה ריאלי?";
+  let out="";
+  if(r&&r.loading) out=`<div class="ai-load"><span class="dotpulse"></span>Claude בודק את מה שכתבתם...<button class="linkbtn" id="ai-stop" type="button">עצירה</button></div>`;
+  else if(r&&r.err) out=`<p class="ai-err">${esc(r.err)}</p>`;
+  else if(r&&r.data){const d=r.data, v=VERD[d.verdict]||VERD.partly, sc=Math.round(Number(d.score));
+    out=`<div class="ai-res fade"><div class="ai-top"><span class="pill ${v[1]}">${v[0]}</span>${sc>=1&&sc<=10?`<span class="ai-score">סיכוי הצלחה משוער: ${sc}/10</span>`:""}</div>
+      <p>${esc(d.feedback)}</p>${sugHTML(s,d,r.used)}${d.tip?`<p class="ai-tip"><b>טיפ:</b> ${esc(d.tip)}</p>`:""}<button class="linkbtn" id="ai-chat" type="button" style="justify-self:start">לשוחח עם Claude על זה</button></div>`;}
+  return `<div class="ai"><div class="ai-head"><button class="btn ai-btn" id="ai-go" type="button" ${r&&r.loading?"disabled":""}>${r&&r.data?"✦ לבדוק שוב":label}</button><span class="ai-note">משוב מיידי על מה שכתבתם</span></div>${out}</div>`;
+}
+function sugHTML(s,d,used){
+  const btn=used?`<span class="ai-note">✓ הניסוח הוכנס לשדה. אפשר לערוך אותו.</span>`:`<button class="btn ghost sm" id="ai-use" type="button">להשתמש בניסוח הזה</button>`;
+  if(s===4&&d.suggest_if&&d.suggest_then) return `<div class="ai-sug"><small>ניסוח מוצע</small><div><b>אם</b> ${esc(d.suggest_if)}, <b>אז</b> ${esc(d.suggest_then)}.</div>${btn}</div>`;
+  if(s>=1&&s<=3&&d.suggestion) return `<div class="ai-sug"><small>ניסוח מוצע</small><div>${esc(d.suggestion)}</div>${btn}</div>`;
+  return "";
+}
+function aiPrompt(s){
+  const d=D();
+  const ctx=`תחום: ${d.name}\nמשאלה: ${st.wish}\n`+(s>=2?`תוצאה רצויה: ${st.outcome}\n`:"")+(s>=3?`מכשול פנימי: ${st.obstacle}\n`:"")+(s>=4?`תוכנית: אם ${st.ifp}, אז ${st.thenp}\n`:"")+(s>=5&&st.ifp2&&st.thenp2?`תוכנית גיבוי: אם ${st.ifp2}, אז ${st.thenp2}\n`:"")+(st.importance?`חשיבות בעיני המשתמש: ${st.importance}/5\n`:"");
+  const task={
+   1:"בדוק את המשאלה: האם היא ספציפית, מאתגרת אבל אפשרית בשבועות הקרובים, ובשליטת האדם? אם היא כללית מדי, גדולה מדי או תלויה באחרים, הצע ניסוח ספציפי ומדיד יותר.",
+   2:"בדוק את תיאור התוצאה: האם הוא מוחשי, אישי ורגשי מספיק כדי להניע? הצע ניסוח עשיר ומוחשי יותר, 2 עד 3 משפטים בגוף ראשון.",
+   3:"בדוק את המכשול: האם הוא פנימי (הרגל, רגש, מחשבה, פיתוי) ובשליטת האדם, ולא נסיבה חיצונית או אדם אחר? האם הוא נשמע כמו המכשול האמיתי? הצע ניסוח מדויק של מכשול פנימי.",
+   4:"בדוק את משפט האם–אז: האם ה'אם' הוא רגע או סימן ברור שאפשר לזהות כשהוא קורה? האם ה'אז' הוא פעולה קטנה, מיידית וברורה שעונה ישירות על המכשול? הצע ניסוח משופר.",
+   5:"בדוק את התוכנית כולה: האם היא ריאלית לביצוע יום־יומי? מה הסיכון העיקרי שהיא תיכשל, ומה הדבר הכי חשוב כדי להצליח?"}[s];
+  const fmt=s===4?'{"verdict":"yes|partly|no","score":7,"feedback":"...","suggest_if":"...","suggest_then":"...","tip":"..."}'
+    :s===5?'{"verdict":"yes|partly|no","score":7,"feedback":"...","tip":"..."}'
+    :'{"verdict":"yes|partly|no","score":7,"feedback":"...","suggestion":"...","tip":"..."}';
+  return `אתה מאמן אישי חם, כן ומקצועי. אתה משלב פסיכולוגיה מבוססת מחקר (שיטת WOOP של גבריאל אטינגן וכוונות יישום של פיטר גולוויצר) עם הבנה ורגישות לעולם היהודי והדתי. המשתמש בונה תוכנית WOOP בעברית.
+
+${ctx}
+המשימה: ${task}
+
+הנחיות: כתוב בעברית פשוטה וחמה, בפנייה ישירה בלשון רבים (אתם). היה כן: אם משהו לא ריאלי, אמור זאת בעדינות ובבירור.
+verdict: yes אם ריאלי, partly אם ריאלי חלקית, no אם לא ריאלי כרגע.
+score: מספר שלם מ־1 עד 10, הערכת סיכוי ההצלחה.
+feedback: 2 עד 3 משפטים: מה טוב ומה כדאי לשפר.
+tip: משפט אחד מעשי.
+ניסוחים מוצעים: קצרים, בגוף ראשון, בלי מירכאות, במילים של המשתמש ככל האפשר.
+החזר רק JSON בצורה הזאת: ${fmt}`;
+}
+async function aiRun(){
+  readFields(); const s=st.step, e=$("#err");
+  const need={1:"wish",2:"outcome",3:"obstacle"}[s];
+  if(need&&!st[need]){if(e) e.textContent="כתבו משהו קודם, ואז Claude יבדוק אותו.";return}
+  if(s===4&&(!st.ifp||!st.thenp)){if(e) e.textContent="מלאו 'אם' וגם 'אז', ואז Claude יבדוק.";return}
+  aiCtl?.abort(); const ctl=aiCtl=new AbortController();
+  AI[s]={loading:true}; render();
+  try{
+    const data=await sample.json(aiPrompt(s),{signal:ctl.signal});
+    if(!data||typeof data!=="object"||!data.feedback) throw {code:"invalid_json"};
+    AI[s]={data};
+  }catch(err){
+    if(err&&err.code==="cancelled"){ if(AI[s]&&AI[s].loading) delete AI[s]; }
+    else{ AI[s]={err:aiErr(err)}; if(err&&OFF_CODES.includes(err.code)) aiOff=true; }
+  }
+  if(st.step===s&&$("#v-build")) render();
+}
+function drawJournalAI(){
+  const b=$("#jai"); if(!b) return;
+  if(!sample||aiOff){b.innerHTML="";return}
+  if(b.dataset.ready) return; b.dataset.ready="1";
+  b.innerHTML=`<div class="ai" style="margin-top:0"><div class="ai-head"><button class="btn ai-btn" id="jai-go" type="button">✦ משוב חם מ־Claude על היום שלי</button><span class="ai-note">חיזוק, ועצה אחת למחר</span></div><div id="jai-out"></div></div>`;
+  $("#jai-go").onclick=async()=>{
+    const v=id=>$("#"+id).value.trim(), out=$("#jai-out"), btn=$("#jai-go");
+    if(!jr&&!v("j-thanks")&&!v("j-win")&&!v("j-next")){out.innerHTML=`<p class="ai-err">כתבו קודם משהו על היום, ואז Claude יגיב.</p>`;return}
+    const plans=load(KEY).map(p=>`- אם ${p.ifp}, אז ${p.thenp}`).join("\n")||"(אין עדיין תוכניות)";
+    const prompt=`אתה מאמן אישי חם, עם הבנה ורגישות לעולם היהודי. המשתמש עושה חשבון נפש קצר של ערב.
+התוכניות שלו:
+${plans}
+דירוג עצמי להיום (1 עד 5): ${jr||"לא צוין"}
+על מה הוא מודה: ${v("j-thanks")||"-"}
+איפה הצליח: ${v("j-win")||"-"}
+מה ישפר מחר: ${v("j-next")||"-"}
+
+כתוב 3 עד 4 משפטים בעברית פשוטה, בלשון רבים (אתם): חיזוק כן ומדויק על מה שהצליח, נקודת מבט מעודדת על מה שלא הצליח (בלי רגשות אשם), ועצה מעשית אחת ומדויקת למחר. אפשר לשלב מקור קצר מחז"ל רק אם הוא באמת מתאים. בלי כותרות ובלי רשימות.`;
+    btn.disabled=true; out.innerHTML=`<div class="ai-load"><span class="dotpulse"></span>Claude קורא את מה שכתבתם...</div>`;
+    let p=null;
+    try{ await sample(prompt,{cache:false,onText:({text})=>{ if(!p){out.innerHTML=`<div class="ai-res fade"><p></p></div>`;p=out.querySelector("p")} p.textContent=text; }}); }
+    catch(err){ if(!(err&&err.text)) out.innerHTML=`<p class="ai-err">${esc(aiErr(err))}</p>`; if(err&&OFF_CODES.includes(err.code)) aiOff=true; }
+    btn.disabled=false;
+  };
+}
+
+/* ---------- chat ---------- */
+const CKEY="woop-hebrew-chat-v1";
+let turns=(()=>{try{const t=JSON.parse(localStorage.getItem(CKEY));return Array.isArray(t)?t:[]}catch(e){return []}})();
+let chatCtl=null, chatBusy=false, livePara=null;
+const saveChat=()=>{try{localStorage.setItem(CKEY,JSON.stringify(turns.slice(-60)))}catch(e){}};
+const STARTERS=["אני מרגיש תקוע ולא יודע במה להתחיל","תעזור לי לבחור מטרה אחת לחודש הקרוב","איך מחזקים בטחון בה' כשקשה בפרנסה?","נכשלתי שוב בתוכנית שלי. מה עושים עכשיו?","תעזור לי לבנות תוכנית אם–אז נגד כעס"];
+function fmt(t){return esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").split(/\n{2,}/).map(p=>`<p>${p.replace(/\n/g,"<br>")}</p>`).join("")}
+function chatRules(){
+  const plans=load(KEY).map(p=>{const d=DOMAINS.find(x=>x.id===p.domain)||{name:""};const n=Object.values(p.done||{}).filter(Boolean).length;
+    return `- ${d.name}: משאלה "${p.wish}". מכשול: "${p.obstacle}". תוכנית: אם ${p.ifp}, אז ${p.thenp}. ימי עשייה: ${n}, רצף נוכחי: ${streak({done:p.done||{}})}.`}).join("\n")||"(אין עדיין תוכניות שמורות)";
+  const draft=st.domain&&st.wish?`טיוטה שהמשתמש בונה עכשיו: תחום ${D().name}, משאלה "${st.wish}"${st.obstacle?`, מכשול "${st.obstacle}"`:""}${st.ifp?`, אם ${st.ifp}, אז ${st.thenp}`:""}.`:"";
+  const j=load(JKEY).slice(0,3).map(x=>`- ${x.heb||x.date}: דירוג ${x.rate||"-"}/5. הצלחה: ${x.win||"-"}. למחר: ${x.next||"-"}`).join("\n")||"(אין רשומות)";
+  return `אתה Claude, מאמן אישי חם, כן ומעשי בתוך אתר "מצפן WOOP". אתה משלב פסיכולוגיה מבוססת מחקר (שיטת WOOP של גבריאל אטינגן, כוונות יישום של פיטר גולוויצר) עם הבנה ורגישות לעולם היהודי והדתי: תורה, תפילה, אמונה ובטחון, מידות, חסד, פרנסה ושלום בית.
+
+כללים:
+- כתוב בעברית פשוטה וחמה, בלשון רבים (אתם), כמו חבר חכם. תשובות קצרות: עד כ־120 מילים, אלא אם ביקשו יותר.
+- היה מעשי: צעד אחד ברור, שאלה אחת טובה. כשמתאים, עזור לנסח משאלה, מכשול פנימי ומשפט "אם–אז".
+- מותר לשלב מקור קצר מחז"ל או מהתנ"ך רק כשהוא באמת מתאים, ובציון המקור.
+- אינך רב ואינך פוסק: בשאלות הלכה הפנה לרב.
+- אם עולה מצוקה רגשית קשה, הקשב, הגב בחום והצע לפנות לאדם קרוב או לאיש מקצוע.
+- אל תמציא נתונים על המשתמש. השתמש רק במידע שלמטה.
+
+מה ידוע על המשתמש:
+התוכניות שלו:
+${plans}
+${draft}
+חשבונות נפש אחרונים:
+${j}
+
+השיחה מתחילה בהודעה הבאה.`;
+}
+function drawMsgs(pending){
+  const box=$("#msgs");
+  let h="";
+  if(!turns.length&&!pending){
+    const st2=load(KEY).length?["תסתכל על התוכניות שלי ותגיד מה לשפר",...STARTERS]:STARTERS;
+    h=`<div class="chat-intro"><b>שלום! במה אפשר לעזור היום?</b><span>אפשר לשאול כל דבר: על מטרה, על קושי, על התוכניות שלכם. או להתחיל מאחד מאלה:</span>
+      <div class="starters">${st2.map((t,i)=>`<button type="button" class="chip" data-s="${i}">${esc(t)}</button>`).join("")}</div></div>`;
+    box.innerHTML=h;
+    box.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>chatSend(st2[+b.dataset.s]));
+    return;
+  }
+  h=turns.map(t=>t.role==="user"?`<div class="msg me">${esc(t.content)}</div>`:`<div class="msg bot"><span class="who">Claude</span>${fmt(t.content)}</div>`).join("");
+  if(pending) h+=`<div class="msg bot" id="live"><span class="who">Claude</span><div class="ai-load" id="live-body"><span class="dotpulse"></span>חושב...</div></div>`;
+  box.innerHTML=h; box.scrollTop=box.scrollHeight;
+}
+function renderChat(){
+  const on=!!sample&&!aiOff;
+  $("#chatbox").hidden=!on; $("#chat-off").hidden=on;
+  if(on&&!chatBusy) drawMsgs(false);
+}
+async function chatSend(text){
+  text=(text||"").trim(); if(!text||chatBusy||!sample) return;
+  $("#c-err").textContent="";
+  turns.push({role:"user",content:text}); saveChat();
+  chatBusy=true; $("#c-in").value=""; $("#c-send").disabled=true; $("#c-stop").hidden=false;
+  drawMsgs(true);
+  const ctl=chatCtl=new AbortController(); let started=false;
+  try{
+    const {text:ans}=await sample([{role:"user",content:chatRules()},...turns.slice(-24)],{cache:false,signal:ctl.signal,
+      onText:({text})=>{const b=$("#live-body"); if(!b) return; if(!started){started=true;b.className=""} b.innerHTML=fmt(text); const m=$("#msgs"); m.scrollTop=m.scrollHeight;}});
+    turns.push({role:"assistant",content:ans});
+  }catch(e){
+    if(e&&e.text) turns.push({role:"assistant",content:e.text+(e.code==="cancelled"?"":"\n\n(התשובה נקטעה)")});
+    if(e&&e.code!=="cancelled") $("#c-err").textContent=aiErr(e);
+    if(e&&OFF_CODES.includes(e.code)) aiOff=true;
+  }
+  saveChat(); chatBusy=false; $("#c-send").disabled=false; $("#c-stop").hidden=true;
+  renderChat(); if(!aiOff) $("#c-in").focus({preventScroll:true});
+}
+function chatOpen(prefill){
+  go("chat"); const i=$("#c-in");
+  if(prefill&&!i.value) i.value=prefill;
+  setTimeout(()=>{i.focus();i.setSelectionRange(i.value.length,i.value.length)},300);
+}
+$("#cform").onsubmit=e=>{e.preventDefault();chatSend($("#c-in").value)};
+$("#c-in").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&matchMedia("(pointer:fine)").matches){e.preventDefault();chatSend(e.target.value)}});
+$("#c-stop").onclick=()=>chatCtl?.abort();
+$("#c-clear").onclick=()=>{if(chatBusy) chatCtl?.abort(); turns=[]; saveChat(); $("#c-err").textContent=""; renderChat()};
+
+/* ---------- plans ---------- */
+function streak(p){let n=0,d=new Date();if(!p.done[dk(d)]) d=addDays(d,-1);while(p.done&&p.done[dk(d)]){n++;d=addDays(d,-1)}return n}
+function updateCount(){$("#nplans").textContent=load(KEY).length}
+const EXAMPLE={id:"ex",domain:"torah",wish:"לקבוע 20 דקות לימוד כל ערב",outcome:"אני מרגיש שלם ושמח, והילדים רואים אבא שלומד",obstacle:"אני עייף בערב ונגרר לטלפון",ifp:"אני מסיים ארוחת ערב",thenp:"אני פותח את הספר ל־10 דקות לפחות לפני הטלפון",done:{},rehearsed:{}};
+(function(){for(const i of [1,2,4,5,6,8,9,10,12,13]) EXAMPLE.done[dk(addDays(new Date(),-i))]=true})();
+
+function planCard(p,ex){
+  const dom=DOMAINS.find(x=>x.id===p.domain)||{name:""};
+  const today=new Date(), start=addDays(today,-27);
+  const cells=[];for(let i=0;i<28;i++){const d=addDays(start,i),k=dk(d);cells.push(`<button type="button" class="cell ${p.done[k]?"done":""} ${i===27?"today":""}" data-k="${k}" ${ex?"disabled":""} aria-pressed="${!!p.done[k]}" aria-label="${DAYN[d.getDay()]}' ${d.getDate()}/${d.getMonth()+1}" title="${esc(hebDate(d)||d.toLocaleDateString("he-IL"))}"></button>`)}
+  const total=Object.values(p.done).filter(Boolean).length;
+  const in28=cells.filter(c=>c.includes(" done ")).length;
+  const doneToday=!!p.done[dk()];
+  const MS=[[7,"שבוע"],[18,"ח\"י ימים"],[40,"40 יום"],[100,"100 יום"]];
+  const nx=MS.find(m=>total<m[0]);
+  const miles=`<div class="miles" aria-label="ציוני דרך">${MS.map(m=>`<span class="mile ${total>=m[0]?"got":""}">${total>=m[0]?"✓ ":""}${m[1]}</span>`).join("")}${nx?`<span class="mile-next">עוד ${nx[0]-total} ימים ל${nx[1]}</span>`:`<span class="mile-next">אשריכם!</span>`}</div>`;
+  return `<article class="saved ${ex?"example":""}" data-id="${p.id}">
+    <div class="top"><span class="wish">${esc(p.wish)}</span><span style="display:flex;gap:8px;align-items:center">${ex?'<span class="badge">דוגמה</span>':""}<span class="tag">${esc(dom.name)}</span></span></div>
+    <div class="plan-line"><b>אם</b> ${esc(p.ifp)}, <b>אז</b> ${esc(p.thenp)}.</div>
+    ${p.ifp2&&p.thenp2?`<div class="plan-line alt"><b>גיבוי:</b> אם ${esc(p.ifp2)}, אז ${esc(p.thenp2)}.</div>`:""}
+    <div class="today-row"><p>${doneToday?"כל הכבוד, פעלתם לפי התוכנית היום.":"האם פעלתם היום לפי התוכנית?"}</p>
+      <button type="button" class="check" data-today ${ex?"disabled":""} aria-pressed="${doneToday}">${doneToday?"✓ עשיתי היום":"סמנו: עשיתי"}</button></div>
+    <div class="heat-wrap"><div class="cap"><span>4 השבועות האחרונים (לחצו על יום כדי לסמן)</span><span>${in28} מתוך 28 ימים · רצף נוכחי ${streak(p)}</span></div>
+      <div class="heat">${cells.join("")}</div></div>
+    ${miles}
+    <div class="meta"><span style="font-size:14px;color:var(--muted)">${total} ימים בסך הכל</span>
+      <span class="acts">${ex?`<button class="btn primary sm" data-new>לבנות תוכנית משלי</button>`:`<button class="btn gold sm" data-reh>חזרה של דקה</button><button class="btn ghost sm" data-chat>להתייעץ</button><button class="btn ghost sm" data-edit>לערוך</button><button class="btn ghost sm" data-copy>להעתיק</button><span class="confirm" data-c><button class="linkbtn" data-del>למחוק</button></span>`}</span></div>
+    <div class="toast" data-toast style="margin:0;min-height:0"></div>
+  </article>`;
+}
+function renderPlans(){
+  const a=load(KEY); a.forEach(p=>{p.done=p.done||{}}); updateCount();
+  const today=dk(), doneToday=a.filter(p=>p.done[today]).length;
+  const best=a.reduce((m,p)=>Math.max(m,streak(p)),0);
+  const tot=a.reduce((s,p)=>s+Object.values(p.done).filter(Boolean).length,0);
+  $("#stats").innerHTML=a.length?`<div class="stat"><b>${doneToday}/${a.length}</b><span>תוכניות שקיימתם היום</span></div><div class="stat"><b>${best}</b><span>הרצף הארוך הנוכחי (ימים)</span></div><div class="stat"><b>${tot}</b><span>ימי עשייה בסך הכל</span></div>`:"";
+  $("#chart").innerHTML=a.length?weekChart(a):"";
+  const box=$("#plans");
+  if(!a.length){
+    box.innerHTML=`<div class="empty"><span>עדיין אין לכם תוכניות. כך תיראה תוכנית אחרי כמה שבועות של מעקב:</span></div>`+planCard(EXAMPLE,true);
+    box.querySelector("[data-new]").onclick=()=>go("build"); return;
+  }
+  box.innerHTML=a.map(p=>planCard(p,false)).join("");
+  box.querySelectorAll(".saved").forEach(card=>{
+    const id=card.dataset.id;
+    const mut=f=>{const a=load(KEY);const p=a.find(x=>x.id==id);p.done=p.done||{};f(p);save(KEY,a);renderPlans()};
+    card.querySelectorAll(".cell").forEach(c=>c.onclick=()=>mut(p=>{p.done[c.dataset.k]=!p.done[c.dataset.k]}));
+    card.querySelector("[data-today]").onclick=()=>mut(p=>{p.done[today]=!p.done[today]});
+    card.querySelector("[data-reh]").onclick=()=>rehearse(load(KEY).find(x=>x.id==id));
+    card.querySelector("[data-chat]").onclick=()=>{const p=load(KEY).find(x=>x.id==id);chatOpen(`רציתי להתייעץ על התוכנית שלי: "אם ${p.ifp}, אז ${p.thenp}". `)};
+    card.querySelector("[data-edit]").onclick=()=>{const p=load(KEY).find(x=>x.id==id);st={...blank(),...p,editId:p.id,step:4};clearAI();render();go("build")};
+    card.querySelector("[data-copy]").onclick=()=>copyText(planText(load(KEY).find(x=>x.id==id)),card.querySelector("[data-toast]"));
+    card.querySelector("[data-del]").onclick=()=>{
+      const c=card.querySelector("[data-c]");
+      c.innerHTML=`<span>למחוק את התוכנית?</span><button class="linkbtn" data-yes style="color:var(--danger)">כן, למחוק</button><button class="linkbtn" data-no>ביטול</button>`;
+      c.querySelector("[data-yes]").onclick=()=>{save(KEY,load(KEY).filter(x=>x.id!=id));renderPlans()};
+      c.querySelector("[data-no]").onclick=renderPlans;
+    };
+  });
+}
+
+function weekChart(a){
+  const W=8, today=new Date(), weeks=[];
+  for(let w=W-1;w>=0;w--){let n=0;const end=addDays(today,-7*w);for(let i=0;i<7;i++){const k=dk(addDays(end,-i));a.forEach(p=>{if(p.done[k])n++})}weeks.push({n,start:addDays(end,-6)})}
+  const max=Math.max(a.length*7,1), vw=340, vh=150, top=22, bot=26, gw=vw/W, bw=gw*.56;
+  const bars=weeks.map((wk,i)=>{const x=vw-(i+1)*gw+(gw-bw)/2, h=Math.max(2,(vh-top-bot)*wk.n/max), y=vh-bot-h, last=i===W-1;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${last?"var(--tekhelet)":"var(--line)"}"/>
+    <text x="${(x+bw/2).toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="${last?"var(--tekhelet)":"var(--muted)"}">${wk.n}</text>
+    <text x="${(x+bw/2).toFixed(1)}" y="${vh-8}" text-anchor="middle" font-size="11" fill="var(--muted)">${last?"השבוע":wk.start.getDate()+"/"+(wk.start.getMonth()+1)}</text>`}).join("");
+  return `<div class="chart"><h3>ההתקדמות לפי שבועות</h3><p>מספר ימי העשייה בכל שבוע, בכל התוכניות יחד (מקסימום ${max}). הימני ביותר הוא הישן ביותר.</p>
+    <svg viewBox="0 0 ${vw} ${vh}" role="img" aria-label="ימי עשייה ב־8 השבועות האחרונים"><line x1="0" x2="${vw}" y1="${vh-bot}" y2="${vh-bot}" stroke="var(--line)"/>${bars}</svg></div>`;
+}
+$("#bk-copy").onclick=()=>copyText(JSON.stringify({app:"woop-he",v:1,plans:load(KEY),journal:load(JKEY)}),$("#bk-t"));
+function bkReset(){$("#bk-c").innerHTML=`<button class="btn primary sm" id="bk-restore" type="button">לשחזר</button>`;$("#bk-restore").onclick=bkAsk}
+function bkAsk(){
+  const t=$("#bk-t"); let data;
+  try{data=JSON.parse($("#bk-in").value.trim());if(!Array.isArray(data.plans))throw 0}catch(e){t.style.color="var(--danger)";t.textContent="הקוד לא תקין. ודאו שהעתקתם את כל קוד הגיבוי מההתחלה ועד הסוף.";return}
+  t.textContent="";
+  $("#bk-c").innerHTML=`<span class="confirm"><span>השחזור יחליף את הנתונים שבמכשיר הזה (${data.plans.length} תוכניות). להמשיך?</span><button class="btn primary sm" id="bk-yes" type="button">כן, לשחזר</button><button class="linkbtn" id="bk-no" type="button">ביטול</button></span>`;
+  $("#bk-no").onclick=bkReset;
+  $("#bk-yes").onclick=()=>{const ok=save(KEY,data.plans)&&save(JKEY,Array.isArray(data.journal)?data.journal:[]);bkReset();
+    t.style.color=ok?"var(--ok)":"var(--danger)";t.textContent=ok?"השחזור הצליח.":"לא ניתן לשמור בדפדפן הזה.";if(ok){$("#bk-in").value="";renderPlans()}};
+}
+$("#bk-restore").onclick=bkAsk;
+
+/* ---------- rehearsal ---------- */
+let rTimer=null;
+function rehearse(p){
+  const ov=$("#rehearse"); let i=0, said=0;
+  const steps=[
+    {k:"W",lab:"המשאלה שלי",txt:p.wish,instr:"קראו את המשאלה לאט, ותזכרו למה היא חשובה לכם."},
+    {k:"O",lab:"התוצאה",txt:p.outcome,instr:"עצמו עיניים ל־20 שניות ודמיינו את הרגע שבו זה הצליח.",t:20},
+    {k:"O",lab:"המכשול",txt:p.obstacle,instr:"דמיינו את הרגע שבו המכשול יופיע היום. איפה תהיו? מה תרגישו?",t:15},
+    {k:"P",lab:"התוכנית",txt:`אם ${p.ifp}, אז ${p.thenp}.`,instr:"אמרו את המשפט בקול שלוש פעמים.",say:true}
+  ];
+  function close(){clearInterval(rTimer);ov.hidden=true;document.body.style.overflow=""}
+  function draw(){
+    clearInterval(rTimer);
+    if(i>=steps.length){
+      ov.innerHTML=`<div class="in fade"><div class="k">✓</div><div class="txt">מוכנים ליום</div><p class="instr">התוכנית טרייה בראש. כשהרגע יגיע, תדעו מה לעשות. בהצלחה!</p><div class="row"><button class="btn gold" id="r-done">לסיים</button></div></div>`;
+      $("#r-done").onclick=close; $("#r-done").focus();
+      const a=load(KEY),q=a.find(x=>x.id==p.id); if(q){q.rehearsed=q.rehearsed||{};q.rehearsed[dk()]=true;save(KEY,a)} return;
+    }
+    const s=steps[i];
+    ov.innerHTML=`<button class="close" id="r-x">סגירה</button><div class="in fade">
+      <div class="dots">${steps.map((_,j)=>`<i class="${j<=i?"on":""}"></i>`).join("")}</div>
+      <div class="k">${s.k}</div><div class="lab">${s.lab}</div><div class="txt">${esc(s.txt)}</div><p class="instr">${s.instr}</p>
+      ${s.t?`<div class="say" id="r-t" style="font-size:28px;font-weight:700">${s.t}</div>`:""}
+      ${s.say?`<div class="row"><button class="btn ghost say" id="r-say">אמרתי (${said}/3)</button></div>`:""}
+      <div class="row">${i>0?`<button class="btn ghost" id="r-back">הקודם</button>`:""}<button class="btn gold" id="r-next">${i===steps.length-1?"סיימתי":"הבא"}</button></div></div>`;
+    $("#r-x").onclick=close; $("#r-next").onclick=()=>{i++;said=0;draw()}; $("#r-next").focus();
+    if($("#r-back")) $("#r-back").onclick=()=>{i--;draw()};
+    if(s.say) $("#r-say").onclick=()=>{said=Math.min(3,said+1);$("#r-say").textContent=said<3?`אמרתי (${said}/3)`:"✓ שלוש פעמים";if(said===3)$("#r-next").focus()};
+    if(s.t){let t=s.t;rTimer=setInterval(()=>{t--;const el=$("#r-t");if(el)el.textContent=t>0?t:"✓";if(t<=0)clearInterval(rTimer)},1000)}
+  }
+  ov.hidden=false; document.body.style.overflow="hidden"; draw();
+  ov.onkeydown=e=>{if(e.key==="Escape")close()};
+}
+
+/* ---------- journal ---------- */
+let jr=0;
+function drawRate(){$("#jrate").innerHTML=[1,2,3,4,5].map(n=>`<button type="button" data-n="${n}" aria-pressed="${jr===n}">${n}</button>`).join("");
+  $("#jrate").querySelectorAll("button").forEach(b=>b.onclick=()=>{jr=+b.dataset.n;drawRate();saveUI()})}
+function renderJournal(){
+  drawRate(); drawJournalAI();
+  const list=load(JKEY), box=$("#jlist");
+  if(!list.length){box.innerHTML=`<div class="empty">חשבונות הנפש שתשמרו יופיעו כאן, מהחדש לישן, עם התאריך העברי.</div>`;return}
+  box.innerHTML=`<h3 style="font-size:24px">רשומות קודמות</h3>`+list.map(j=>`<div class="jentry"><div class="h">${esc(j.heb||j.date)}<span><span class="stars" aria-label="דירוג ${j.rate} מתוך 5">${"★".repeat(j.rate||0)}${"☆".repeat(5-(j.rate||0))}</span></span></div>
+    <dl>${j.thanks?`<dt>הודיה</dt><dd>${esc(j.thanks)}</dd>`:""}${j.win?`<dt>הצלחה</dt><dd>${esc(j.win)}</dd>`:""}${j.next?`<dt>מחר</dt><dd>${esc(j.next)}</dd>`:""}</dl></div>`).join("");
+}
+$("#jform").onsubmit=e=>{
+  e.preventDefault();
+  const v=id=>$("#"+id).value.trim(), t=$("#jtoast");
+  const entry={date:dk(),heb:hebDate(new Date()),rate:jr,thanks:v("j-thanks"),win:v("j-win"),next:v("j-next")};
+  if(!entry.rate&&!entry.thanks&&!entry.win&&!entry.next){t.style.color="var(--danger)";t.textContent="בחרו דירוג או כתבו לפחות שורה אחת.";return}
+  const list=load(JKEY).filter(x=>x.date!==entry.date); list.unshift(entry);
+  if(!save(JKEY,list)){t.style.color="var(--danger)";t.textContent="לא ניתן לשמור בדפדפן הזה.";return}
+  t.style.color="var(--ok)"; t.textContent="נשמר. לילה טוב.";
+  ["j-thanks","j-win","j-next"].forEach(id=>$("#"+id).value=""); jr=0; renderJournal();
+};
+
+/* ---------- remember where I was ---------- */
+function saveUI(){clearTimeout(saveT);saveT=setTimeout(saveNow,250)}
+function saveNow(){try{
+  const v=id=>{const el=document.getElementById(id);return el?el.value:""};
+  if(booted){ui.view=curView;(ui.scroll=ui.scroll||{})[curView]=Math.round(scrollY)}
+  ui.st={...st}; ui.j={rate:jr,thanks:v("j-thanks"),win:v("j-win"),next:v("j-next")}; ui.c=v("c-in");
+  localStorage.setItem(UIKEY,JSON.stringify(ui));
+}catch(e){}}
+if(ui.st&&typeof ui.st==="object"&&DOMAINS.some(d=>d.id===ui.st.domain)){st={...blank(),...ui.st}; if(st.step>=1) restoredStep=st.step}
+if(ui.j){jr=+ui.j.rate||0;["thanks","win","next"].forEach(k=>{if(ui.j[k]) $("#j-"+k).value=ui.j[k]})}
+if(ui.c) $("#c-in").value=ui.c;
+document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#v-build")) readFields(); saveUI()});
+addEventListener("scroll",()=>{if(booted) saveUI()},{passive:true});
+addEventListener("pagehide",saveNow);
+document.addEventListener("visibilitychange",()=>{if(document.hidden) saveNow()});
+
+render(); updateCount(); show(location.hash.slice(1)||ui.view);
+{const y=ui.scroll&&ui.scroll[curView]; if(y) {requestAnimationFrame(()=>scrollTo(0,y)); setTimeout(()=>scrollTo(0,y),250)}}
+setTimeout(()=>{booted=true},400);
+<\/script>
+
+</body></html></script>
+</div>
+
 <!-- ===== התקדמות ===== -->
 <div id="progMode" class="hidden">
   <div id="progBody"></div>
@@ -1415,8 +2407,9 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
       el('outsMode').classList.toggle('hidden',mode!=='outs');
       el('sparksMode').classList.toggle('hidden',mode!=='sparks');
       el('witMode').classList.toggle('hidden',mode!=='wit');
+      el('compassMode').classList.toggle('hidden',mode!=='compass');
       el('statsPanel').classList.toggle('hidden',!counting);
-      el('refPanel').classList.toggle('hidden',mode==='outs'||mode==='sparks'||mode==='wit');
+      el('refPanel').classList.toggle('hidden',mode==='outs'||mode==='sparks'||mode==='wit'||mode==='compass');
       if(mode==='prog') renderProg();
       el('pairHelp').style.display = (mode==='pair')?'block':'none';
       el('tripleHelp').style.display = (mode==='triple')?'block':'none';
@@ -1426,6 +2419,7 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
       if(mode==='decks') newDeckRound();
       if(mode==='outs' && !O.hole) oNew();
       if(mode==='sparks') sparksLoad();
+      if(mode==='compass') compassLoad();
       if(mode==='wit') wEnter(); else wStopAll();
       if(mode!=='table') tHalt();
     });
@@ -2287,6 +3281,16 @@ window.claude?.use?.("sample").then(s=>{sample=s;$("gen").hidden=!s;renderList()
     });
   });
   el('wrNext').addEventListener('click',function(){ wrNext(); el('wrMine').focus(); });
+
+  /* ---------- מצפן WOOP: דף עצמאי בתוך iframe בגובה המסך, עם גלילה פנימית
+     (כך החזרה המודרכת במסך מלא והטאבים הדביקים שלו עובדים כרגיל) ---------- */
+  function compassLoad(){
+    var f=el('compassFrame');
+    if(f.dataset.loaded) return;
+    f.dataset.loaded='1';
+    f.srcdoc=el('compassSrc').textContent.replace(/<\\\/script>/g,'</'+'script>');
+    f.scrollIntoView({block:'start',behavior:'smooth'});
+  }
 
   /* ---------- שולחן ---------- */
   var ME=1;
